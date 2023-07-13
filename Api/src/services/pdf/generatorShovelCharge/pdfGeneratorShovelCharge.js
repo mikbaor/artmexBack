@@ -128,6 +128,8 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
       .font("Helvetica")
       .text(detailShovel.destiny_address);
 
+    let fontBold = "Helvetica-Bold";
+
     // CARGA
     doc
       .moveDown()
@@ -140,7 +142,12 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
       .text("Cantidad de Tarimas:", { continued: true })
       .font("Helvetica")
       .text(`${detailShovel.tarimasAmmount}`);
-      //.text(carga.dataValues.tarimasAmmount);
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(12)
+      .text("Cajas en tarimas:", { continued: true })
+      .font("Helvetica")
+      .text(`${dataTable[0].countBoxes - detailShovel.boxesAmmount}`);
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
@@ -148,47 +155,45 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
       .font("Helvetica")
       .text(`${detailShovel.boxesAmmount}`);
     doc
+
+    doc
       .font("Helvetica-Bold")
       .fontSize(12)
-      .text("Peso de la Carga:", { continued: true })
+      .text("Peso bruto total:", { continued: true })
       .font("Helvetica")
       .text(`${detailShovel.totalWeight}`);
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(12)
+      .text("Unidad de Peso:", { continued: true })
+      .font("Helvetica")
+      .text("KGM");
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(12)
+      .text("Material o residuo peligroso:", { continued: true })
+      .font("Helvetica")
+      .text("NO");
 
-    let fontBold = "Helvetica-Bold";
 
-    let orderInfo = {
-      orderNo: "15484659",
-      invoiceNo: "MH-MU-1077",
-      invoiceDate: "11/05/2021",
-      invoiceTime: "10:57:00 PM",
-      products: [
-        {
-          id: "15785",
-          name: "Cerdito piedra",
-          company: "Acer",
-          qty: 39999,
-          totalPrice: 39999,
-          tipo: "Pequeño",
-        },
-        {
-          id: "15786",
-          name: "Molcajete",
-          company: "Dell",
-          qty: 2999,
-          totalPrice: 5998,
-          tipo: "Grande",
-        },
-      ],
-      totalValue: 45997,
-    };
-    
+    const WIDTH_INICIO = 70
+    const WIDTH_FIN = 480
+
+    const PAGE_WIDTH_FULL = doc.page.width;
+    const inicioYRestantPage = 70
+    const alturaCajaObeservaciones = 150
+    //datos para la firma
+    const text1 = "RECIBO DE CONFORMIDAD"
+    const text2 = "(Nombre y firma del destinatario o persona autorizada)"
+
     //Cabecilla
-    doc.rect(70, 450, 480, 20).fill("#FC427B").stroke("#FC427B");
-    doc.fillColor("#fff").text("ID", 80, 456, { width: 80 });
-    doc.text("Producto", 140, 456, { width: 100 });
-    doc.text("Descripcion", 250, 456, { width: 100});
-    doc.text("tipo", 390, 456, { width: 100 });
-    doc.text("Qty", 490, 456, { width: 100 });
+    const cabecillaY = 486
+    doc.rect(WIDTH_INICIO, cabecillaY-6, WIDTH_FIN, 20).fill("#FC427B").stroke("#FC427B");
+    doc.fillColor("#ffffff").text("ID", 80, cabecillaY, { width: 80 });
+    doc.text("Producto", 140, cabecillaY, { width: 100 });
+    doc.text("Descripcion", 250, cabecillaY, { width: 100});
+    doc.text("tipo", 390, cabecillaY, { width: 100 });
+    doc.text("Qty", 485, cabecillaY, { width: 100 });
 
 
     //RENDER TABLA PRINCIPAL
@@ -196,37 +201,58 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
     let arrayProducts = cutArrayProducts(dataTable)
 
     let productNo = 1;
-    let lastPagePrimary = !(dataTable.length > 7 && arrayProducts[1]?.length)
+    let lastPagePrimary = !(dataTable.length > 6 && arrayProducts[1]?.length)
     for (let i = 0; i < arrayProducts[0].length; i++) {
       let ele = arrayProducts[0][i]
       
-      let y = 456 + (productNo * 30);
+      let y = cabecillaY + (productNo * 30);
       doc.fillColor("#000").text(ele.id, 75, y, { width: 90 });
       doc.text(String(ele.name+ele.name).sliceName(), 140, y, { width: 190 });
       doc.text(`${ele.colorPrimario}`.sliceDescription(), 250, y, { width: 200, lineBreak: false });
       doc.text(String(ele.tipo).sliceTipo(), 390, y, { width: 100 });
-      doc.text(ele.ammount_total, 490, y, { width: 100 });
+      doc.text(ele.ammount_total, 485, y, { width: 100 });
       TOTAL_AMMOUNT += Number(ele.ammount_total)
       productNo++;
 
-      if(lastPagePrimary && i === arrayProducts[0].length-1 && arrayProducts[0].length <= 7){
-        doc.rect(70, y + 20, 480, 0.2).fill("#000000").stroke("#000000");
-
+      if(lastPagePrimary && i === arrayProducts[0].length-1 && arrayProducts[0].length <= 6){
+        doc.rect(70, y + 20, 480, 0.4).fill("#000000").stroke("#000000");
+        //total
         doc.font(fontBold).text("Total:", 390, y + 25);
-        doc.font(fontBold).text(TOTAL_AMMOUNT, 470, y + 25);
-      }else if(lastPagePrimary && i === arrayProducts[0].length-1){
+        doc.font(fontBold).text(TOTAL_AMMOUNT, 485, y + 25);
+
         doc.addPage()
-        doc.rect(70, 70, 480, 0.2).fill("#000000").stroke("#000000");
-        doc.font(fontBold).text("Total:", 390, 75);
-        doc.font(fontBold).text(TOTAL_AMMOUNT, 470, 75);
+        let separacionResultado = 0
+        doc
+        .font("Helvetica-Bold")
+        .fontSize(14)
+        .text("Observaciones",  70, inicioYRestantPage + separacionResultado);
+        
+        doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
+        doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20 + alturaCajaObeservaciones, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
+        doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20 , 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+        doc.rect(WIDTH_FIN + WIDTH_INICIO, inicioYRestantPage + separacionResultado +20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+
+        //responsable
+        doc.rect(WIDTH_INICIO, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 160, WIDTH_FIN, 0.8).fill("#000000").stroke("#000000");
+
+        const textoWidth1 = doc.widthOfString(text1);
+        const textoWidth2 = doc.widthOfString(text2); // Ancho del texto              // Ancho del texto
+        const posicionX1 = (PAGE_WIDTH_FULL - textoWidth1) / 2;
+        const posicionX2 = (PAGE_WIDTH_FULL - textoWidth2) / 2;
+
+        doc.font("Helvetica-Bold")
+        .fontSize(14)
+        .text(text1, posicionX1, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 170);
+        doc.font("Helvetica-Bold")
+        .fontSize(14)
+        .text(text2, posicionX2, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 185);
+      
       }
     }
 
 
     //RENDER TABLA RESTANTE
-    console.log("Cantidad de paginas");
-    console.log(arrayProducts.length);
-    if(dataTable.length > 7 && arrayProducts[1]?.length){
+    if(dataTable.length > 6 && arrayProducts[1]?.length){
       
       for (let i = 1; i < arrayProducts.length; i++) {
         let lastPage = false
@@ -234,13 +260,14 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
           lastPage = true
         }
 
+        //CABECILLA
         doc.addPage();
-        doc.rect(70, 70, 480, 20).fill("#FC427B").stroke("#FC427B");
-        doc.fillColor("#ffffff").text("ID", 80, 75, { width: 80 });
-        doc.text("Producto", 140, 75, { width: 100 });
-        doc.text("Descripcion", 250, 75, { width: 100 });
-        doc.text("tipo", 390, 75, { width: 100 });
-        doc.text("Qty", 490, 75, { width: 100 });
+        doc.rect(WIDTH_INICIO, inicioYRestantPage, WIDTH_FIN, 20).fill("#FC427B").stroke("#FC427B");
+        doc.fillColor("#ffffff").text("ID", 80, inicioYRestantPage + 5, { width: 80 });
+        doc.text("Producto", 140, inicioYRestantPage + 5, { width: 100 });
+        doc.text("Descripcion", 250, inicioYRestantPage + 5, { width: 100 });
+        doc.text("tipo", 390, inicioYRestantPage + 5, { width: 100 });
+        doc.text("Qty", 485, inicioYRestantPage + 5, { width: 100 });
     
         //RENDER TABLA Restante
         let productNo = 1;
@@ -251,24 +278,112 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
           doc.fillColor("#000").text(ele.id, 75, y, { width: 90 });
           doc.text(String(ele.name+ele.name).sliceName(), 140, y, { width: 190 });
           doc.text(`${ele.colorPrimario}`.sliceDescription(), 250, y, { width: 200, lineBreak: false });
-          doc.text(String(ele.tipo).sliceTipo(), 390, y, { width: 100 });
-          doc.text(ele.ammount_total, 490, y, { width: 100 });
+          doc.text(String(ele.tipo).sliceTipo(), 390, y, { width: 100});
+          doc.text(ele.ammount_total, 485, y, { width: 100 });
           TOTAL_AMMOUNT += Number(ele.ammount_total)
           productNo++;
 
           if(lastPage && j === arrayProducts[i].length-1 && arrayProducts[i].length <= 19){
             console.log("ENTRA A LASTPAGE  menor 17");
-            doc.rect(70, y + 20, 480, 0.2).fill("#000000").stroke("#000000");
+            doc.rect(WIDTH_INICIO, y + 20, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
 
+            //TOTAL
             doc.font(fontBold).text("Total:", 390, y + 25);
-            doc.font(fontBold).text(TOTAL_AMMOUNT, 470, y + 25);
+            doc.font(fontBold).text(TOTAL_AMMOUNT, 485, y + 25);
+
+            //observaciones
+            if(arrayProducts[i].length <= 6){
+              let separacionResultado = 70
+              doc
+              .font("Helvetica-Bold")
+              .fontSize(14)
+              .text("Observaciones",  70, y + separacionResultado);
+              
+              doc.rect(WIDTH_INICIO, y + separacionResultado + 20, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
+              doc.rect(WIDTH_INICIO, y + separacionResultado + 20 + alturaCajaObeservaciones, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
+              doc.rect(WIDTH_INICIO, y + separacionResultado + 20 , 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+              doc.rect(WIDTH_FIN + WIDTH_INICIO, y + separacionResultado +20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+
+              //responsable
+              doc.rect(WIDTH_INICIO, y + alturaCajaObeservaciones + separacionResultado + 160, WIDTH_FIN, 0.8).fill("#000000").stroke("#000000");
+
+              const textoWidth1 = doc.widthOfString(text1);
+              const textoWidth2 = doc.widthOfString(text2); // Ancho del texto              // Ancho del texto
+              const posicionX1 = (PAGE_WIDTH_FULL - textoWidth1) / 2;
+              const posicionX2 = (PAGE_WIDTH_FULL - textoWidth2) / 2;
+
+              doc.font("Helvetica-Bold")
+              .fontSize(14)
+              .text(text1, posicionX1, y + alturaCajaObeservaciones + separacionResultado + 170);
+              doc.font("Helvetica-Bold")
+              .fontSize(14)
+              .text(text2, posicionX2, y + alturaCajaObeservaciones + separacionResultado + 185);
+            }else{    
+              doc.addPage()
+              let separacionResultado = 0
+              doc
+              .font("Helvetica-Bold")
+              .fontSize(14)
+              .text("Observaciones",  70, inicioYRestantPage + separacionResultado);
+              
+              doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
+              doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20 + alturaCajaObeservaciones, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
+              doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20 , 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+              doc.rect(WIDTH_FIN + WIDTH_INICIO, inicioYRestantPage + separacionResultado +20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+
+              //responsable
+              doc.rect(WIDTH_INICIO, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 160, WIDTH_FIN, 0.8).fill("#000000").stroke("#000000");
+
+              const textoWidth1 = doc.widthOfString(text1);
+              const textoWidth2 = doc.widthOfString(text2); // Ancho del texto              // Ancho del texto
+              const posicionX1 = (PAGE_WIDTH_FULL - textoWidth1) / 2;
+              const posicionX2 = (PAGE_WIDTH_FULL - textoWidth2) / 2;
+
+              doc.font("Helvetica-Bold")
+              .fontSize(14)
+              .text(text1, posicionX1, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 170);
+              doc.font("Helvetica-Bold")
+              .fontSize(14)
+              .text(text2, posicionX2, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 185);
+            }
+
           }else if(lastPage && j === arrayProducts[i].length-1 ){
             console.log("ENTRA A LASTPAGE");
             doc.addPage()
-            doc.rect(70, 70, 480, 0.2).fill("#000000").stroke("#000000");
+            doc.rect(WIDTH_INICIO, inicioYRestantPage, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
 
-            doc.font(fontBold).text("Total:", 390, 75);
-            doc.font(fontBold).text(TOTAL_AMMOUNT, 470, 75);
+            //TOTAL
+            doc.font(fontBold).text("Total:", 390, inicioYRestantPage + 5);
+            doc.font(fontBold).text(TOTAL_AMMOUNT, 485, inicioYRestantPage + 5);
+
+    
+            //caja para observaciones
+            let separacionResultado = 70
+            doc
+            .font("Helvetica-Bold")
+            .fontSize(14)
+            .text("Observaciones",  70, inicioYRestantPage + separacionResultado);
+            
+            doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
+            doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20 + alturaCajaObeservaciones, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
+            doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20 , 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+            doc.rect(WIDTH_FIN + WIDTH_INICIO, inicioYRestantPage + separacionResultado +20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+
+            //responsable
+            doc.rect(WIDTH_INICIO, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 160, WIDTH_FIN, 0.8).fill("#000000").stroke("#000000");
+
+            const textoWidth1 = doc.widthOfString(text1);
+            const textoWidth2 = doc.widthOfString(text2);
+            const posicionX1 = (PAGE_WIDTH_FULL - textoWidth1) / 2;
+            const posicionX2 = (PAGE_WIDTH_FULL - textoWidth2) / 2;
+
+            doc.font("Helvetica-Bold")
+            .fontSize(14)
+            .text(text1, posicionX1, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 170);
+            doc.font("Helvetica-Bold")
+            .fontSize(14)
+            .text(text2, posicionX2, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 185);
+
           }
         }
       }
