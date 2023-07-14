@@ -1,6 +1,6 @@
-function cutArrayProducts(data){
-  const primerosOcho = data.slice(0, 6);
-  const restantes = data.slice(6);
+function cutArrayProducts(data, cutArray = 5){
+  const primerosOcho = data.slice(0, cutArray);
+  const restantes = data.slice(cutArray);
 
   const subarrays = [];
   subarrays.push(primerosOcho);

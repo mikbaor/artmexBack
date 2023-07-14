@@ -1,4 +1,9 @@
-let getAmountsAllProducts = (idShovelCharge) => {
+/**
+ * require idShovelCharge in replacement query
+ * @returns 
+ * query string
+ */
+let getAmountsAllProducts = () => {
   return `
     SELECT  
         pro.id,
@@ -14,11 +19,11 @@ let getAmountsAllProducts = (idShovelCharge) => {
     WHERE 
         bx."TarimaId" = ANY (
             SELECT ta_sho."TarimaId" FROM "TarimaShovelcharge" ta_sho
-            WHERE ta_sho."ShovelchargeId" = ${idShovelCharge}
+            WHERE ta_sho."ShovelchargeId" = :idShovelCharge
         )OR
         bx.id = ANY (
             SELECT bx_sho."BoxId" FROM "BoxShovelcharge" bx_sho
-            WHERE bx_sho."ShovelchargeId" = ${idShovelCharge}
+            WHERE bx_sho."ShovelchargeId" = :idShovelCharge
         )
     GROUP BY pro.id ORDER BY pro.name;
     `;

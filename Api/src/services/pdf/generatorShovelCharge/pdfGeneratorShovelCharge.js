@@ -18,9 +18,7 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
     const doc = new PDFDocument();
 
     const imagePath = path.join(__dirname, "./../../../../uploads/logo.png");
-    const imagePath2 = path.join(
-      __dirname,
-      `./../../../../uploads/imagesQr/qr_${idShovelCharge}.png`
+    const imagePath2 = path.join(__dirname, `./../../../../uploads/imagesQr/qr_${idShovelCharge}.png`
     );
 
     doc.image(imagePath, 95, 25, { width: 85, height: 85 });
@@ -48,54 +46,61 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
       .fontSize(12)
       .text(`Chofer:`, { continued: true })
       .font("Helvetica")
-      .text(
-        `${detailShovel.chofer}`
-      );
-      // .text(
-      //   `${carga.dataValues.Chofer.dataValues.firstName} ${carga.dataValues.Chofer.dataValues.lastName}`
-      // );
+      .text(detailShovel.chofer_name);
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(12)
+      .text(`Compañia del chofer:`, { continued: true })
+      .font("Helvetica")
+      .text(detailShovel.chofer_company);
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
       .text(`Placa del Trailer:`, { continued: true })
       .font("Helvetica")
-      .text(`${detailShovel.placa}`);
-      //.text(`${carga.dataValues.Trailer.dataValues.placaCode}`);
+      .text(detailShovel.trailer_placa);
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(12)
+      .text(`Compañia del trailer:`, { continued: true })
+      .font("Helvetica")
+      .text(detailShovel.trailer_company);
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(12)
+      .text(`Numero de caja del trailer:`, { continued: true })
+      .font("Helvetica")
+      .text(detailShovel.trailer_box_number);
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
       .text("Bodega de Salida:", { continued: true })
       .font("Helvetica")
       .text(`${detailShovel.store}`);
-      //.text(carga.dataValues.Store.dataValues.name);
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
       .text("Pais:", { continued: true })
       .font("Helvetica")
       .text(`${detailShovel.country}`);
-      //.text(carga.dataValues.Store.dataValues.country);
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
       .text("Estado:", { continued: true })
       .font("Helvetica")
       .text(`${detailShovel.state}`);
-      //.text(carga.dataValues.Store.dataValues.state);
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
       .text("Ciudad:", { continued: true })
       .font("Helvetica")
       .text(`${detailShovel.city}`);
-      //.text(carga.dataValues.Store.dataValues.city);
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
       .text("Direccion:", { continued: true })
       .font("Helvetica")
       .text(`${detailShovel.address}`);
-      //.text(carga.dataValues.Store.dataValues.address);
 
     // DESTINO
     doc
@@ -178,6 +183,7 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
 
     const WIDTH_INICIO = 70
     const WIDTH_FIN = 480
+    const CUT_ARRAY = 5
 
     const PAGE_WIDTH_FULL = doc.page.width;
     const inicioYRestantPage = 70
@@ -187,7 +193,7 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
     const text2 = "(Nombre y firma del destinatario o persona autorizada)"
 
     //Cabecilla
-    const cabecillaY = 486
+    const cabecillaY = 526
     doc.rect(WIDTH_INICIO, cabecillaY-6, WIDTH_FIN, 20).fill("#FC427B").stroke("#FC427B");
     doc.fillColor("#ffffff").text("ID", 80, cabecillaY, { width: 80 });
     doc.text("Producto", 140, cabecillaY, { width: 100 });
@@ -198,10 +204,10 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
 
     //RENDER TABLA PRINCIPAL
     let TOTAL_AMMOUNT = 0
-    let arrayProducts = cutArrayProducts(dataTable)
+    let arrayProducts = cutArrayProducts(dataTable, CUT_ARRAY)
 
     let productNo = 1;
-    let lastPagePrimary = !(dataTable.length > 6 && arrayProducts[1]?.length)
+    let lastPagePrimary = !(dataTable.length > CUT_ARRAY && arrayProducts[1]?.length)
     for (let i = 0; i < arrayProducts[0].length; i++) {
       let ele = arrayProducts[0][i]
       
@@ -214,7 +220,7 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
       TOTAL_AMMOUNT += Number(ele.ammount_total)
       productNo++;
 
-      if(lastPagePrimary && i === arrayProducts[0].length-1 && arrayProducts[0].length <= 6){
+      if(lastPagePrimary && i === arrayProducts[0].length-1 && arrayProducts[0].length <= CUT_ARRAY){
         doc.rect(70, y + 20, 480, 0.4).fill("#000000").stroke("#000000");
         //total
         doc.font(fontBold).text("Total:", 390, y + 25);
@@ -252,7 +258,7 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
 
 
     //RENDER TABLA RESTANTE
-    if(dataTable.length > 6 && arrayProducts[1]?.length){
+    if(dataTable.length > CUT_ARRAY && arrayProducts[1]?.length){
       
       for (let i = 1; i < arrayProducts.length; i++) {
         let lastPage = false
@@ -409,7 +415,11 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
     doc.end();
  
     } catch (error) {
-        throw new Error(error.message)
+      console.log("************************ Error ************************");
+      console.log(error);
+      throw new Error(error.message)
+      console.log(" ************************ Error ************************");
+
     }
 }
 

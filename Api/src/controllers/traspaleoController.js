@@ -631,17 +631,20 @@ const documentPdfShovelcharge = async (req, res) => {
     let idShovelCharge = req.body.id;
 
     //todos los productos
-    let query = querys.getAmountsAllProducts(idShovelCharge)
+    let query = querys.getAmountsAllProducts()
     let resultDatable = await conn.query(query, {
+      replacements: {idShovelCharge: idShovelCharge},
       type: QueryTypes.SELECT,
     });
-    
     //detalles de la shovel charge
-    let queryDetailShovelCharge = querys.getDetailShovelCharge(idShovelCharge)
+    let queryDetailShovelCharge = querys.getDetailShovelCharge()
     let resultDetailShovel = await conn.query(queryDetailShovelCharge, {
-    type: QueryTypes.SELECT,
+      replacements: {idShovelCharge: idShovelCharge},
+      type: QueryTypes.SELECT,
     });
    
+    console.log(resultDetailShovel[0]);
+
     await services.pdf.pdfShovelCharge({
       detailShovel: resultDetailShovel[0], 
       dataTable: resultDatable, 
