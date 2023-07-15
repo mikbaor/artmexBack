@@ -15,7 +15,7 @@ const {
 } = require("../connection/db");
 const { QueryTypes } = require("sequelize");
 const services = require("../services/index")
-const querys = require("./querys/index");
+const querys = require("./querys");
 
 const { Op } = require("sequelize");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
@@ -631,24 +631,24 @@ const documentPdfShovelcharge = async (req, res) => {
     let idShovelCharge = req.body.id;
 
     //todos los productos
-    let query = querys.getAmountsAllProducts()
+    let query = querys.traspaleo.getProductShovel()
     let resultDatable = await conn.query(query, {
-      replacements: {idShovelCharge: idShovelCharge},
+      replacements: { idShovelCharge: idShovelCharge },
       type: QueryTypes.SELECT,
     });
     //detalles de la shovel charge
-    let queryDetailShovelCharge = querys.getDetailShovelCharge()
+    let queryDetailShovelCharge = querys.traspaleo.getInfoShovel()
     let resultDetailShovel = await conn.query(queryDetailShovelCharge, {
-      replacements: {idShovelCharge: idShovelCharge},
+      replacements: { idShovelCharge: idShovelCharge },
       type: QueryTypes.SELECT,
     });
-   
+
     console.log(resultDetailShovel[0]);
 
     await services.pdf.pdfShovelCharge({
-      detailShovel: resultDetailShovel[0], 
-      dataTable: resultDatable, 
-      res: res, 
+      detailShovel: resultDetailShovel[0],
+      dataTable: resultDatable,
+      res: res,
       idShovelCharge: idShovelCharge
     })
 

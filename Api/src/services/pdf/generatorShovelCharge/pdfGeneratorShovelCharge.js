@@ -5,16 +5,16 @@ const QRCode = require("qrcode");
 const cutArrayProducts = require("./cutArrayProducts.js");
 require("./sliceText.js")
 
-async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
+async function pdfShovelCharge({ idShovelCharge, detailShovel, res, dataTable }) {
+  //detailShovel.observations
 
 
+  const qrData = `EMB${idShovelCharge}`;
+  const qrImagePath = path.join(__dirname, `./../../../../uploads/imagesQr/qr_${idShovelCharge}.png`);
+  try {
 
-    const qrData = `EMB${idShovelCharge}`;
-    const qrImagePath = path.join(__dirname, `./../../../../uploads/imagesQr/qr_${idShovelCharge}.png`);
-    try {
-        
     await QRCode.toFile(qrImagePath, qrData);
-    
+
     const doc = new PDFDocument();
 
     const imagePath = path.join(__dirname, "./../../../../uploads/logo.png");
@@ -194,10 +194,10 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
 
     //Cabecilla
     const cabecillaY = 526
-    doc.rect(WIDTH_INICIO, cabecillaY-6, WIDTH_FIN, 20).fill("#FC427B").stroke("#FC427B");
+    doc.rect(WIDTH_INICIO, cabecillaY - 6, WIDTH_FIN, 20).fill("#FC427B").stroke("#FC427B");
     doc.fillColor("#ffffff").text("ID", 80, cabecillaY, { width: 80 });
     doc.text("Producto", 140, cabecillaY, { width: 100 });
-    doc.text("Descripcion", 250, cabecillaY, { width: 100});
+    doc.text("Descripcion", 250, cabecillaY, { width: 100 });
     doc.text("tipo", 390, cabecillaY, { width: 100 });
     doc.text("Qty", 485, cabecillaY, { width: 100 });
 
@@ -210,17 +210,17 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
     let lastPagePrimary = !(dataTable.length > CUT_ARRAY && arrayProducts[1]?.length)
     for (let i = 0; i < arrayProducts[0].length; i++) {
       let ele = arrayProducts[0][i]
-      
+
       let y = cabecillaY + (productNo * 30);
       doc.fillColor("#000").text(ele.id, 75, y, { width: 90 });
-      doc.text(String(ele.name+ele.name).sliceName(), 140, y, { width: 190 });
+      doc.text(String(ele.name + ele.name).sliceName(), 140, y, { width: 190 });
       doc.text(`${ele.colorPrimario}`.sliceDescription(), 250, y, { width: 200, lineBreak: false });
       doc.text(String(ele.tipo).sliceTipo(), 390, y, { width: 100 });
       doc.text(ele.ammount_total, 485, y, { width: 100 });
       TOTAL_AMMOUNT += Number(ele.ammount_total)
       productNo++;
 
-      if(lastPagePrimary && i === arrayProducts[0].length-1 && arrayProducts[0].length <= CUT_ARRAY){
+      if (lastPagePrimary && i === arrayProducts[0].length - 1 && arrayProducts[0].length <= CUT_ARRAY) {
         doc.rect(70, y + 20, 480, 0.4).fill("#000000").stroke("#000000");
         //total
         doc.font(fontBold).text("Total:", 390, y + 25);
@@ -229,15 +229,22 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
         doc.addPage()
         let separacionResultado = 0
         doc
-        .font("Helvetica-Bold")
-        .fontSize(14)
-        .text("Observaciones",  70, inicioYRestantPage + separacionResultado);
-        
+          .font("Helvetica-Bold")
+          .fontSize(14)
+          .text("Observaciones", 70, inicioYRestantPage + separacionResultado);
+
         doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
         doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20 + alturaCajaObeservaciones, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
-        doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20 , 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
-        doc.rect(WIDTH_FIN + WIDTH_INICIO, inicioYRestantPage + separacionResultado +20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+        doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+        doc.rect(WIDTH_FIN + WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
 
+        //Observaciones
+        doc.font("Helvetica").fontSize(12).text(
+          detailShovel.observations,
+          WIDTH_INICIO + 7,
+          inicioYRestantPage + separacionResultado + 28,
+          { width: (WIDTH_FIN - WIDTH_INICIO) + 50, height: 90, indent: 0, align: "justify" }
+        )
         //responsable
         doc.rect(WIDTH_INICIO, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 160, WIDTH_FIN, 0.8).fill("#000000").stroke("#000000");
 
@@ -247,22 +254,22 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
         const posicionX2 = (PAGE_WIDTH_FULL - textoWidth2) / 2;
 
         doc.font("Helvetica-Bold")
-        .fontSize(14)
-        .text(text1, posicionX1, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 170);
+          .fontSize(14)
+          .text(text1, posicionX1, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 170);
         doc.font("Helvetica-Bold")
-        .fontSize(14)
-        .text(text2, posicionX2, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 185);
-      
+          .fontSize(14)
+          .text(text2, posicionX2, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 185);
+
       }
     }
 
 
     //RENDER TABLA RESTANTE
-    if(dataTable.length > CUT_ARRAY && arrayProducts[1]?.length){
-      
+    if (dataTable.length > CUT_ARRAY && arrayProducts[1]?.length) {
+
       for (let i = 1; i < arrayProducts.length; i++) {
         let lastPage = false
-        if(i == arrayProducts.length-1){
+        if (i == arrayProducts.length - 1) {
           lastPage = true
         }
 
@@ -274,7 +281,7 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
         doc.text("Descripcion", 250, inicioYRestantPage + 5, { width: 100 });
         doc.text("tipo", 390, inicioYRestantPage + 5, { width: 100 });
         doc.text("Qty", 485, inicioYRestantPage + 5, { width: 100 });
-    
+
         //RENDER TABLA Restante
         let productNo = 1;
         for (let j = 0; j < arrayProducts[i].length; j++) {
@@ -282,14 +289,14 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
 
           let y = 80 + (productNo * 30);
           doc.fillColor("#000").text(ele.id, 75, y, { width: 90 });
-          doc.text(String(ele.name+ele.name).sliceName(), 140, y, { width: 190 });
+          doc.text(String(ele.name + ele.name).sliceName(), 140, y, { width: 190 });
           doc.text(`${ele.colorPrimario}`.sliceDescription(), 250, y, { width: 200, lineBreak: false });
-          doc.text(String(ele.tipo).sliceTipo(), 390, y, { width: 100});
+          doc.text(String(ele.tipo).sliceTipo(), 390, y, { width: 100 });
           doc.text(ele.ammount_total, 485, y, { width: 100 });
           TOTAL_AMMOUNT += Number(ele.ammount_total)
           productNo++;
 
-          if(lastPage && j === arrayProducts[i].length-1 && arrayProducts[i].length <= 19){
+          if (lastPage && j === arrayProducts[i].length - 1 && arrayProducts[i].length <= 19) {
             console.log("ENTRA A LASTPAGE  menor 17");
             doc.rect(WIDTH_INICIO, y + 20, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
 
@@ -298,18 +305,25 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
             doc.font(fontBold).text(TOTAL_AMMOUNT, 485, y + 25);
 
             //observaciones
-            if(arrayProducts[i].length <= 6){
+            if (arrayProducts[i].length <= 6) {
               let separacionResultado = 70
               doc
-              .font("Helvetica-Bold")
-              .fontSize(14)
-              .text("Observaciones",  70, y + separacionResultado);
-              
+                .font("Helvetica-Bold")
+                .fontSize(14)
+                .text("Observaciones", 70, y + separacionResultado);
+
               doc.rect(WIDTH_INICIO, y + separacionResultado + 20, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
               doc.rect(WIDTH_INICIO, y + separacionResultado + 20 + alturaCajaObeservaciones, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
-              doc.rect(WIDTH_INICIO, y + separacionResultado + 20 , 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
-              doc.rect(WIDTH_FIN + WIDTH_INICIO, y + separacionResultado +20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+              doc.rect(WIDTH_INICIO, y + separacionResultado + 20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+              doc.rect(WIDTH_FIN + WIDTH_INICIO, y + separacionResultado + 20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
 
+              //observations
+              doc.font("Helvetica").fontSize(12).text(
+                detailShovel.observations,
+                WIDTH_INICIO + 7,
+                y + separacionResultado + 28,
+                { width: (WIDTH_FIN - WIDTH_INICIO) + 50, height: 90, indent: 0, align: "justify" }
+              )
               //responsable
               doc.rect(WIDTH_INICIO, y + alturaCajaObeservaciones + separacionResultado + 160, WIDTH_FIN, 0.8).fill("#000000").stroke("#000000");
 
@@ -319,23 +333,31 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
               const posicionX2 = (PAGE_WIDTH_FULL - textoWidth2) / 2;
 
               doc.font("Helvetica-Bold")
-              .fontSize(14)
-              .text(text1, posicionX1, y + alturaCajaObeservaciones + separacionResultado + 170);
+                .fontSize(14)
+                .text(text1, posicionX1, y + alturaCajaObeservaciones + separacionResultado + 170);
               doc.font("Helvetica-Bold")
-              .fontSize(14)
-              .text(text2, posicionX2, y + alturaCajaObeservaciones + separacionResultado + 185);
-            }else{    
+                .fontSize(14)
+                .text(text2, posicionX2, y + alturaCajaObeservaciones + separacionResultado + 185);
+            } else {
               doc.addPage()
               let separacionResultado = 0
               doc
-              .font("Helvetica-Bold")
-              .fontSize(14)
-              .text("Observaciones",  70, inicioYRestantPage + separacionResultado);
-              
+                .font("Helvetica-Bold")
+                .fontSize(14)
+                .text("Observaciones", 70, inicioYRestantPage + separacionResultado);
+
               doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
               doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20 + alturaCajaObeservaciones, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
-              doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20 , 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
-              doc.rect(WIDTH_FIN + WIDTH_INICIO, inicioYRestantPage + separacionResultado +20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+              doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+              doc.rect(WIDTH_FIN + WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+
+              //observations
+              doc.font("Helvetica").fontSize(12).text(
+                detailShovel.observations,
+                WIDTH_INICIO + 7,
+                inicioYRestantPage + separacionResultado + 28,
+                { width: (WIDTH_FIN - WIDTH_INICIO) + 50, height: 90, indent: 0, align: "justify" }
+              )
 
               //responsable
               doc.rect(WIDTH_INICIO, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 160, WIDTH_FIN, 0.8).fill("#000000").stroke("#000000");
@@ -346,14 +368,14 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
               const posicionX2 = (PAGE_WIDTH_FULL - textoWidth2) / 2;
 
               doc.font("Helvetica-Bold")
-              .fontSize(14)
-              .text(text1, posicionX1, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 170);
+                .fontSize(14)
+                .text(text1, posicionX1, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 170);
               doc.font("Helvetica-Bold")
-              .fontSize(14)
-              .text(text2, posicionX2, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 185);
+                .fontSize(14)
+                .text(text2, posicionX2, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 185);
             }
 
-          }else if(lastPage && j === arrayProducts[i].length-1 ){
+          } else if (lastPage && j === arrayProducts[i].length - 1) {
             console.log("ENTRA A LASTPAGE");
             doc.addPage()
             doc.rect(WIDTH_INICIO, inicioYRestantPage, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
@@ -362,18 +384,26 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
             doc.font(fontBold).text("Total:", 390, inicioYRestantPage + 5);
             doc.font(fontBold).text(TOTAL_AMMOUNT, 485, inicioYRestantPage + 5);
 
-    
+
             //caja para observaciones
             let separacionResultado = 70
             doc
-            .font("Helvetica-Bold")
-            .fontSize(14)
-            .text("Observaciones",  70, inicioYRestantPage + separacionResultado);
-            
+              .font("Helvetica-Bold")
+              .fontSize(14)
+              .text("Observaciones", 70, inicioYRestantPage + separacionResultado);
+
             doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
             doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20 + alturaCajaObeservaciones, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
-            doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20 , 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
-            doc.rect(WIDTH_FIN + WIDTH_INICIO, inicioYRestantPage + separacionResultado +20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+            doc.rect(WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+            doc.rect(WIDTH_FIN + WIDTH_INICIO, inicioYRestantPage + separacionResultado + 20, 0.4, alturaCajaObeservaciones).fill("#000000").stroke("#000000");
+
+            //Observaciones
+            doc.font("Helvetica").fontSize(12).text(
+              observations,
+              WIDTH_INICIO + 7,
+              inicioYRestantPage + separacionResultado + 28,
+              { width: (WIDTH_FIN - WIDTH_INICIO) + 50, height: 90, indent: 0, align: "justify" }
+            )
 
             //responsable
             doc.rect(WIDTH_INICIO, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 160, WIDTH_FIN, 0.8).fill("#000000").stroke("#000000");
@@ -384,11 +414,11 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
             const posicionX2 = (PAGE_WIDTH_FULL - textoWidth2) / 2;
 
             doc.font("Helvetica-Bold")
-            .fontSize(14)
-            .text(text1, posicionX1, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 170);
+              .fontSize(14)
+              .text(text1, posicionX1, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 170);
             doc.font("Helvetica-Bold")
-            .fontSize(14)
-            .text(text2, posicionX2, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 185);
+              .fontSize(14)
+              .text(text2, posicionX2, inicioYRestantPage + alturaCajaObeservaciones + separacionResultado + 185);
 
           }
         }
@@ -406,21 +436,22 @@ async function pdfShovelCharge({idShovelCharge, detailShovel, res, dataTable}){
       // Guardar el archivo PDF en el sistema de archivos
       const filePath = path.join(__dirname, "./pdf_momentaneo.pdf");
       fs.writeFileSync(filePath, pdfBuffer);
+      const newPdf = fs.readFileSync(filePath)
+      fs.unlinkSync(filePath);
 
       // Enviar el archivo PDF como respuesta
       res.contentType("application/pdf");
-      res.send(fs.readFileSync(filePath));
+      res.send(newPdf);
     });
 
     doc.end();
- 
-    } catch (error) {
-      console.log("************************ Error ************************");
-      console.log(error);
-      throw new Error(error.message)
-      console.log(" ************************ Error ************************");
 
-    }
+  } catch (error) {
+    console.log("************************ Error ************************");
+    console.log(error);
+    throw new Error(error.message)
+
+  }
 }
 
 
