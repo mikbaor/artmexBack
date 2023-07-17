@@ -397,7 +397,7 @@ async function ticketDetailSale({ tarimas, saleDetail, boxes, res }) {
     );
     //DATE
     y += SpacingLineY1
-    const day = saleDetail.date.getDate()
+    const day = `${saleDetail.date.getDate()}/${saleDetail.date.getMonth() + 1}/${saleDetail.date.getFullYear()}`
     const hour = `${saleDetail.date.getHours()}:${saleDetail.date.getMinutes()}:${saleDetail.date.getSeconds()}`;
     doc.text(
       "DATE:",
