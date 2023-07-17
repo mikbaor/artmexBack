@@ -13,14 +13,14 @@ const {
   Salephotos,
   conn,
 } = require("../connection/db");
-const { tarimasAcajas } = require("../handlers/desentarimar");
+/*const { tarimasAcajas } = require("../handlers/desentarimar");
 const { Op } = require("sequelize");
 const { uploadImageSales } = require("./uploadImagesController");
-const createCsvWriter = require("csv-writer").createObjectCsvWriter;
+const createCsvWriter = require("csv-writer").createObjectCsvWriter;*/
 const servicesPdf = require("./../services/pdf")
 const querySales = require("./querys/sale");
 const { QueryTypes } = require("sequelize");
-
+/*
 const createSale = async (req, res) => {
   const {
     userId,
@@ -33,8 +33,8 @@ const createSale = async (req, res) => {
     OrderExist,
     priceboxId,
   } = req.body;
-//costo de la tarima id
-//costo de la caja id
+  //costo de la tarima id
+  //costo de la caja id
 
   const transaction = await conn.transaction();
 
@@ -83,7 +83,7 @@ const createSale = async (req, res) => {
         });
 
         const cajasDeTarimaConRatio = cajasDeTarima.map((cajaId) => ({
-          boxId: cajaId.dataValues.id, 
+          boxId: cajaId.dataValues.id,
           ratio: tar.ratio,
         }));
         cajasIds = cajasIds.concat(cajasDeTarimaConRatio);
@@ -410,8 +410,8 @@ const csvSales = async (req, res) => {
 
 
 }
-
-const pdfSaleDeta = async (req, res) => {
+*/
+const pdfTicketSale = async (req, res) => {
   try {
     const saleId = req.body.id
 
@@ -438,23 +438,31 @@ const pdfSaleDeta = async (req, res) => {
 
     const [resTarimas, resBoxes, detailSale] = await Promise.all([promiseTarima, promiseBoxe, promiseDetail])
 
-    await servicesPdf.ticketDetailSale({
-      tarimas: resTarimas,
-      saleDetail: detailSale[0],
-      boxes: resBoxes,
-      res: res
-    })
+    if (detailSale.length) {
+      await servicesPdf.ticketDetailSale({
+        tarimas: resTarimas,
+        saleDetail: detailSale[0],
+        boxes: resBoxes,
+        res: res
+      })
+    } else {
+      throw new Error("error in sales detail extraction")
+    }
+
 
   } catch (error) {
-    res.status(400).json(error.message)
+    res.status(400).json({
+      message: "error en extraccion de detalle venta",
+      errorDetails: error.message
+    })
   }
 }
 
 
 
 module.exports = {
-  createSale,
+  /*createSale,
   getAllSales,
-  csvSales,
-  pdfSaleDeta
+  csvSales,*/
+  pdfTicketSale
 };

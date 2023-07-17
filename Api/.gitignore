@@ -1,5 +1,6 @@
 node_modules
 
 .env
+.env/*
 .base_aartmex.sql
 .base aartmex.sql
