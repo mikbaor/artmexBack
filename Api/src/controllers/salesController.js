@@ -30,6 +30,8 @@ const createSale = async (req, res) => {
     OrderExist,
     priceboxId,
   } = req.body;
+//costo de la tarima id
+//costo de la caja id
 
   const transaction = await conn.transaction();
 
@@ -78,7 +80,7 @@ const createSale = async (req, res) => {
         });
 
         const cajasDeTarimaConRatio = cajasDeTarima.map((cajaId) => ({
-          boxId: cajaId.dataValues.id,
+          boxId: cajaId.dataValues.id, 
           ratio: tar.ratio,
         }));
         cajasIds = cajasIds.concat(cajasDeTarimaConRatio);
