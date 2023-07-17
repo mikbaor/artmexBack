@@ -13,14 +13,14 @@ const {
   Salephotos,
   conn,
 } = require("../connection/db");
-/*const { tarimasAcajas } = require("../handlers/desentarimar");
+const { tarimasAcajas } = require("../handlers/desentarimar");
 const { Op } = require("sequelize");
 const { uploadImageSales } = require("./uploadImagesController");
-const createCsvWriter = require("csv-writer").createObjectCsvWriter;*/
+const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const servicesPdf = require("./../services/pdf")
 const querySales = require("./querys/sale");
 const { QueryTypes } = require("sequelize");
-/*
+
 const createSale = async (req, res) => {
   const {
     userId,
@@ -410,7 +410,7 @@ const csvSales = async (req, res) => {
 
 
 }
-*/
+
 const pdfTicketSale = async (req, res) => {
   try {
     const saleId = req.body.id
@@ -461,8 +461,8 @@ const pdfTicketSale = async (req, res) => {
 
 
 module.exports = {
-  /*createSale,
+  createSale,
   getAllSales,
-  csvSales,*/
+  csvSales,
   pdfTicketSale
 };
