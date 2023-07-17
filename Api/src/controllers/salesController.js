@@ -408,6 +408,28 @@ if(dateStart && dateEnd){
 
 }
 
+const pdfSaleDeta = async(req, res)=>{
+  /*
+    userId,
+    date,
+    microBoxSales,
+    tarimas,
+    totalCost,
+    clientId,
+    totalAmmountPay,
+    OrderExist,
+    priceboxId,
+  */
+  try {
+    const idSale = req.body.id
+
+
+
+  } catch (error) {
+    res.status(400).json(error.message)
+  }
+}
+
 
 
 module.exports = {
