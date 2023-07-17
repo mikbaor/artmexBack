@@ -17,6 +17,9 @@ const { tarimasAcajas } = require("../handlers/desentarimar");
 const { Op } = require("sequelize");
 const { uploadImageSales } = require("./uploadImagesController");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
+const servicesPdf = require("./../services/pdf")
+const querySales = require("./querys/sale");
+const { QueryTypes } = require("sequelize");
 
 const createSale = async (req, res) => {
   const {
@@ -69,7 +72,7 @@ const createSale = async (req, res) => {
 
     let cajasIds = [];
     let joinBoxes = [];
-    let totalBoxes =0;
+    let totalBoxes = 0;
     if (tarimas) {
       for (const tar of tarimas) {
         const tarima = await Tarima.findByPk(tar.id);
@@ -83,14 +86,14 @@ const createSale = async (req, res) => {
         }));
         cajasIds = cajasIds.concat(cajasDeTarimaConRatio);
       }
-      if(microBoxSales){
+      if (microBoxSales) {
         joinBoxes = [...microBoxSales];
-      }    
+      }
       joinBoxes = joinBoxes.concat(cajasIds);
       totalBoxes = joinBoxes.length
     }
 
-    await Sale.update({totalBoxes},{where:{id:newSale.id}}, {transaction})
+    await Sale.update({ totalBoxes }, { where: { id: newSale.id } }, { transaction })
 
 
     for (const microSale of joinBoxes) {
@@ -207,7 +210,7 @@ const createSale = async (req, res) => {
         tipo: totalCost <= totalAmmountPay ? "unique" : "partial",
         status: totalCost <= totalAmmountPay ? "complete" : "pending",
         totalAmmountPay,
-        debtAmmount:  totalCost <= totalAmmountPay ? 0 : totalCost-totalAmmountPay
+        debtAmmount: totalCost <= totalAmmountPay ? 0 : totalCost - totalAmmountPay
       },
       { transaction }
     );
@@ -268,7 +271,7 @@ const getAllSales = async (req, res) => {
   //state agregar
 
   const whereClause = {};
-  const whereStatus={}
+  const whereStatus = {}
   if (userId) {
     whereClause.UserId = userId;
   }
@@ -291,14 +294,14 @@ const getAllSales = async (req, res) => {
         },
         {
           model: Payment,
-          where:whereStatus
+          where: whereStatus
         },
         {
           model: Microsale,
           include: [
             {
               model: Box,
-              attributes:[id],
+              attributes: [id],
               include: [
                 {
                   model: Boxammount,
@@ -326,38 +329,38 @@ const getAllSales = async (req, res) => {
 };
 
 
-const csvSales = async (req,res)=>{
-const{dateStart, dateEnd} = req.body
+const csvSales = async (req, res) => {
+  const { dateStart, dateEnd } = req.body
 
-const where ={}
+  const where = {}
 
-if(dateStart && dateEnd){
-  const startDate = new Date(dateStart)
-  const endDate = new Date(dateEnd)
+  if (dateStart && dateEnd) {
+    const startDate = new Date(dateStart)
+    const endDate = new Date(dateEnd)
 
-  where.date={
-    [Op.between]:[startDate, endDate]
+    where.date = {
+      [Op.between]: [startDate, endDate]
+    }
   }
-}
   try {
-    
+
     const sales = await Sale.findAll({
       where,
       include: [
         {
           model: User,
-          attributes:["firstName","lastName", "userName"]
+          attributes: ["firstName", "lastName", "userName"]
         },
         {
           model: Client,
-          attributes:["nombreDueño","tiendaNombre","NombreDelEncargado","state","direccion"]
+          attributes: ["nombreDueño", "tiendaNombre", "NombreDelEncargado", "state", "direccion"]
         },
         {
           model: Payment,
-          attributes:["tipo","status","totalAmmountPay"]
+          attributes: ["tipo", "status", "totalAmmountPay"]
         },
         {
-          model: Microsale, 
+          model: Microsale,
         },
       ],
       order: [["id", "DESC"]],
@@ -393,35 +396,52 @@ if(dateStart && dateEnd){
         { id: "Microsales.BoxId", title: "Microsales Box ID" }
       ]
     });
-    
+
 
     await csvWriter.writeRecords(sales);
 
     res.download("sales.csv")
   } catch (error) {
     res.status(400).json(error.message)
-    
+
   }
 
 
 }
 
-const pdfSaleDeta = async(req, res)=>{
-  /*
-    userId,
-    date,
-    microBoxSales,
-    tarimas,
-    totalCost,
-    clientId,
-    totalAmmountPay,
-    OrderExist,
-    priceboxId,
-  */
+const pdfSaleDeta = async (req, res) => {
   try {
-    const idSale = req.body.id
+    const saleId = req.body.id
 
+    //traemos los querys y hacemos las peticiones
 
+    //tarimas
+    let queryTarimas = querySales.getTarimasSale()
+    let promiseTarima = conn.query(queryTarimas, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+    //cajas sueltas
+    let queryBoxes = querySales.getSeparateBoxes()
+    let promiseBoxe = conn.query(queryBoxes, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+    //extra details
+    let queryDetails = querySales.getDetailClientAndPay()
+    let promiseDetail = conn.query(queryDetails, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+
+    const [resTarimas, resBoxes, detailSale] = await Promise.all([promiseTarima, promiseBoxe, promiseDetail])
+
+    await servicesPdf.ticketDetailSale({
+      tarimas: resTarimas,
+      saleDetail: detailSale[0],
+      boxes: resBoxes,
+      res: res
+    })
 
   } catch (error) {
     res.status(400).json(error.message)
@@ -433,5 +453,6 @@ const pdfSaleDeta = async(req, res)=>{
 module.exports = {
   createSale,
   getAllSales,
-  csvSales
+  csvSales,
+  pdfSaleDeta
 };

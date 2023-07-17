@@ -1,8 +1,8 @@
-const { getTarimasSale, getSeparateBoxes, getDetailClientAndPay } = require("./detailSale")
+const { getTarimasSale, getSeparateBoxes, getDetailClientAndPay } = require("./ticketDetailSale")
 
 
 
-exports = {
+module.exports = {
     getTarimasSale,
     getSeparateBoxes,
     getDetailClientAndPay
