@@ -1,11 +1,14 @@
+/**
+ * Require: saleId
+ */
 function getTarimasSale() {
     ////variables
     //saleId
     return `
     SELECT
         micro_sale."SaleId",
-        SUM(COALESCE(micro_sale."priceBox", 0)) as "tarima_price",
-        ta.id as "tarima"
+        ta.id as "tarima_id",
+        SUM(COALESCE(micro_sale."priceBox", 0)) as "tarima_price"
     FROM "Microsales" AS micro_sale
         INNER JOIN "Boxes" bx on bx.id = micro_sale."BoxId" AND bx."itsSell"
             AND bx."SubstoreId" IS NULL AND bx."TransitId" IS NULL
@@ -14,7 +17,9 @@ function getTarimasSale() {
     GROUP BY ta.id, micro_sale."SaleId"
     `
 }
-
+/**
+ * Require: saleId
+ */
 function getSeparateBoxes() {
     ////variables
     //saleId
@@ -22,14 +27,18 @@ function getSeparateBoxes() {
     SELECT
         bx.id,
         bx.cost,
-        bx."dollarCost"
+        bx."dollarCost",
+        COUNT(bx) as "boxes_count"
     FROM "Microsales" AS micro_sale
         INNER JOIN "Boxes" bx on bx.id = micro_sale."BoxId" AND bx."itsSell"
             AND (bx."SubstoreId" IS NOT NULL OR bx."TransitId" IS NOT NULL)
     WHERE micro_sale."SaleId" = :saleId
+    GROUP BY bx.id, bx.cost, bx."dollarCost"
     `
 }
-
+/**
+ * Require: saleId
+ */
 function getDetailClientAndPay() {
     ////variables
     //saleId
