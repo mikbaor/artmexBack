@@ -198,7 +198,7 @@ async function pdfShovelCharge({ idShovelCharge, detailShovel, res, dataTable })
     doc.fillColor("#ffffff").text("ID", 80, cabecillaY, { width: 80 });
     doc.text("Producto", 140, cabecillaY, { width: 100 });
     doc.text("Descripcion", 250, cabecillaY, { width: 100 });
-    doc.text("tipo", 390, cabecillaY, { width: 100 });
+    //doc.text("tipo", 390, cabecillaY, { width: 100 });
     doc.text("Qty", 485, cabecillaY, { width: 100 });
 
 
@@ -213,9 +213,9 @@ async function pdfShovelCharge({ idShovelCharge, detailShovel, res, dataTable })
 
       let y = cabecillaY + (productNo * 30);
       doc.fillColor("#000").text(ele.id, 75, y, { width: 90 });
-      doc.text(String(ele.name + ele.name).sliceName(), 140, y, { width: 190 });
-      doc.text(`${ele.colorPrimario}`.sliceDescription(), 250, y, { width: 200, lineBreak: false });
-      doc.text(String(ele.tipo).sliceTipo(), 390, y, { width: 100 });
+      doc.text(String(ele.name).split('@')[0].sliceName(), 140, y, { width: 190 });
+      doc.text(`${ele.tipo}`.split('@')[0].sliceDescription(), 250, y, { width: 200, lineBreak: false });
+      //doc.text(String(ele.tipo).sliceTipo(), 390, y, { width: 100 });
       doc.text(ele.ammount_total, 485, y, { width: 100 });
       TOTAL_AMMOUNT += Number(ele.ammount_total)
       productNo++;
@@ -279,7 +279,7 @@ async function pdfShovelCharge({ idShovelCharge, detailShovel, res, dataTable })
         doc.fillColor("#ffffff").text("ID", 80, inicioYRestantPage + 5, { width: 80 });
         doc.text("Producto", 140, inicioYRestantPage + 5, { width: 100 });
         doc.text("Descripcion", 250, inicioYRestantPage + 5, { width: 100 });
-        doc.text("tipo", 390, inicioYRestantPage + 5, { width: 100 });
+        //doc.text("tipo", 390, inicioYRestantPage + 5, { width: 100 });
         doc.text("Qty", 485, inicioYRestantPage + 5, { width: 100 });
 
         //RENDER TABLA Restante
@@ -289,9 +289,9 @@ async function pdfShovelCharge({ idShovelCharge, detailShovel, res, dataTable })
 
           let y = 80 + (productNo * 30);
           doc.fillColor("#000").text(ele.id, 75, y, { width: 90 });
-          doc.text(String(ele.name + ele.name).sliceName(), 140, y, { width: 190 });
-          doc.text(`${ele.colorPrimario}`.sliceDescription(), 250, y, { width: 200, lineBreak: false });
-          doc.text(String(ele.tipo).sliceTipo(), 390, y, { width: 100 });
+          doc.text(String(ele.name).split('@')[0].sliceName(), 140, y, { width: 190 });
+          doc.text(`${ele.tipo}`.split('@')[0].sliceDescription(), 250, y, { width: 200, lineBreak: false });
+          //doc.text(String(ele.tipo).sliceTipo(), 390, y, { width: 100 });
           doc.text(ele.ammount_total, 485, y, { width: 100 });
           TOTAL_AMMOUNT += Number(ele.ammount_total)
           productNo++;
