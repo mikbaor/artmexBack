@@ -147,12 +147,12 @@ async function pdfShovelCharge({ idShovelCharge, detailShovel, res, dataTable })
       .text("Cantidad de Tarimas:", { continued: true })
       .font("Helvetica")
       .text(`${detailShovel.tarimasAmmount}`);
-    doc
+    /*doc
       .font("Helvetica-Bold")
       .fontSize(12)
       .text("Cajas en tarimas:", { continued: true })
       .font("Helvetica")
-      .text(`${dataTable[0].countBoxes - detailShovel.boxesAmmount}`);
+      .text(`${dataTable[0].countBoxes - detailShovel.boxesAmmount}`);*/
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
