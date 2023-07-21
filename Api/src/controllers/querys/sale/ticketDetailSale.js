@@ -48,6 +48,7 @@ function getDetailClientAndPay() {
         sa.date,
         sa."UserId",
         cli."nombreDueño" as "client_name",
+        cli."email" as "client_email",
         cli."taxID" as "client_tax_id",
         pa.status as "payment_status",
         COALESCE(pa."totalAmmountPay", 0) as "payment_pay",

@@ -22,7 +22,7 @@ function roundToCentenary(number) {
 
 }
 
-async function ticketDetailSale({ tarimas, saleDetail, boxes, res }) {
+async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
   try {
     //ANTES DE LA CREACION DEL DOC
     //TARIMAS
@@ -505,4 +505,4 @@ async function ticketDetailSale({ tarimas, saleDetail, boxes, res }) {
 
 
 
-module.exports = ticketDetailSale
+module.exports = ticketDetailSale80mm

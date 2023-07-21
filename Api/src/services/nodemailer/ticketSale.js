@@ -1,16 +1,19 @@
 const nodemailer = require('nodemailer');
-
-const user = "fraynilson@techminds.com.mx"
-const password = "admin-1234"
+const fs = require("fs");
+const htmlReceipt = require('./html/receiptSale');
+const user = "temgojob@gmail.com"
+const password = "obwpzylqkxpmitbt"
 const hostEmail = "imap.titan.email"
+const port = 465
 
-function emailTicketSale() {
-
-
+function emailTicketSale({ detailUser, filePath, namePath, res }) {
+    // detailUser.client_name
+    // detailUser.client_email
     const transporter = nodemailer.createTransport({
-        host: hostEmail,
-        port: 465,
-        secure: true,
+        //host: hostEmail,
+        //port: 465,
+        //secure: true,
+        service: 'gmail',
         auth: {
             user: user,
             pass: password,
@@ -18,21 +21,38 @@ function emailTicketSale() {
     });
 
     const mailOptions = {
-        from: user, // La dirección de correo electrónico
-        to: 'fraytoledotapia2003@gmail.com', // La dirección de correo electrónico del destinatario
-        subject: 'Prueba de envío correo', // El asunto del correo
-        text: 'Este es un correo de prueba desde fraynilson@techminds.com.mx', // El contenido del correo (texto plano)
-    };
-
+        from: user,
+        to: detailUser.client_email,
+        subject: 'detailUser.client_email',
+        html: htmlReceipt({ name: detailUser.client_name }),
+        attachments: [
+            {
+                filename: namePath,
+                content: fs.createReadStream(filePath)
+            },
+        ],
+    }
     // Enviar el correo
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            console.log('Error al enviar el correo:', error);
+            try {
+                fs.unlinkSync(filePath);
+            } catch (error) {
+                console.error(error);
+            }
         } else {
-            console.log('Correo enviado:', info.response);
+            try {
+                fs.unlinkSync(filePath);
+                console.log("Correo enviado exitosamente");
+            } catch (error) {
+                console.error(error);
+            }
+
         }
     });
-
+    res.status(200).json({
+        message: "mail sent successfully",
+    });
 }
 
 module.exports = emailTicketSale

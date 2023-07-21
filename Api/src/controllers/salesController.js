@@ -17,9 +17,11 @@ const {
 const { Op } = require("sequelize");
 const { uploadImageSales } = require("./uploadImagesController");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;*/
+const fs = require("fs");
+const path = require("path");
 const servicesPdf = require("./../services/pdf")
 const querySales = require("./querys/sale");
-const { QueryTypes } = require("sequelize");
+const { QueryTypes, where } = require("sequelize");
 const emailTicketSale = require("../services/nodemailer/ticketSale");
 /*
 const createSale = async (req, res) => {
@@ -412,7 +414,7 @@ const csvSales = async (req, res) => {
 
 }*/
 
-const pdfTicketSale = async (req, res) => {
+const pdfTicketSale80mm = async (req, res) => {
   try {
     const saleId = req.body.id
 
@@ -440,7 +442,7 @@ const pdfTicketSale = async (req, res) => {
     const [resTarimas, resBoxes, detailSale] = await Promise.all([promiseTarima, promiseBoxe, promiseDetail])
 
     if (detailSale.length) {
-      await servicesPdf.ticketDetailSale({
+      await servicesPdf.ticketDetailSale80mm({
         tarimas: resTarimas,
         saleDetail: detailSale[0],
         boxes: resBoxes,
@@ -459,12 +461,75 @@ const pdfTicketSale = async (req, res) => {
   }
 }
 
-const emailDetailSale = async (req, res) => {
+const pdfTicketSale58mm = async (req, res) => {
+  try {
+    const saleId = req.body.id
+
+    //traemos los querys y hacemos las peticiones
+
+    //tarimas
+    let queryTarimas = querySales.getTarimasSale()
+    let promiseTarima = conn.query(queryTarimas, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+    //cajas sueltas
+    let queryBoxes = querySales.getSeparateBoxes()
+    let promiseBoxe = conn.query(queryBoxes, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+    //extra details
+    let queryDetails = querySales.getDetailClientAndPay()
+    let promiseDetail = conn.query(queryDetails, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+
+    const [resTarimas, resBoxes, detailSale] = await Promise.all([promiseTarima, promiseBoxe, promiseDetail])
+
+    //function para resolve
+    function functionResPdf({ res, filePath, namePath }) {
+      const newPdf = fs.readFileSync(filePath)
+      fs.unlinkSync(filePath);
+
+      // Enviar el archivo PDF como respuesta
+      res.contentType("application/pdf");
+      res.send(newPdf);
+    }
+
+    if (detailSale.length) {
+      let filePathPdf = await servicesPdf.ticketDetailSale58mm({
+        tarimas: resTarimas,
+        saleDetail: detailSale[0],
+        boxes: resBoxes,
+        saleId: saleId,
+        functionRes: functionResPdf,
+        res: res
+      })
+    } else {
+      throw new Error("error in sales detail extraction")
+    }
+
+
+  } catch (error) {
+    res.status(400).json({
+      message: "error en extraccion de detalle venta",
+      errorDetails: error.message
+    })
+  }
+}
+
+const emailDetailSale80mm = async (req, res) => {
   try {
     const saleId = req.body.saleId
     const userId = req.body.userId
 
-    emailTicketSale()
+
+    const userDetail = await User.findOne({
+      where: { id: User.id }
+    })
+    //emailTicketSale()
 
 
     res.status(200).json({
@@ -476,12 +541,77 @@ const emailDetailSale = async (req, res) => {
   }
 }
 
+const emailDetailSale58mm = async (req, res) => {
+  try {
+    const saleId = req.body.saleId
+    const userId = req.body.userId
+
+    //emailTicketSale()
+    const userDetail = await User.findOne({
+      where: { id: userId }
+    })
+
+    //traemos los querys y hacemos las peticiones
+    //tarimas
+    let queryTarimas = querySales.getTarimasSale()
+    let promiseTarima = conn.query(queryTarimas, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+    //cajas sueltas
+    let queryBoxes = querySales.getSeparateBoxes()
+    let promiseBoxe = conn.query(queryBoxes, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+    //extra details
+    let queryDetails = querySales.getDetailClientAndPay()
+    let promiseDetail = conn.query(queryDetails, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+
+    const [resTarimas, resBoxes, detailSale] = await Promise.all([promiseTarima, promiseBoxe, promiseDetail])
+
+    //callback para cuando se termina de crear el pdf
+    function functionResEmail({ res, filePath, namePath }) {
+      //ejecutamos la callback que enviara el email
+      emailTicketSale({
+        detailUser: detailSale[0],
+        filePath: filePath,
+        namePath: namePath,
+        res: res
+      })
+
+    }
+
+    if (detailSale.length) {
+      await servicesPdf.ticketDetailSale58mm({
+        tarimas: resTarimas,
+        saleDetail: detailSale[0],
+        boxes: resBoxes,
+        saleId: saleId,
+        functionRes: functionResEmail,
+        res: res
+      })
+    } else {
+      throw new Error("error in sales detail extraction")
+    }
+
+
+
+  } catch (error) {
+    throw new Error(error.message)
+  }
+}
 
 
 module.exports = {
   /*createSale,
   getAllSales,
   csvSales,*/
-  pdfTicketSale,
-  emailDetailSale
+  pdfTicketSale80mm,
+  pdfTicketSale58mm,
+  emailDetailSale80mm,
+  emailDetailSale58mm
 };
