@@ -9,20 +9,20 @@ function mmToPo(number) {
   return number * 2.83465
 }
 function roundToCentenary(number) {
-  if (number <= 500) {
+  if (number <= 520) {
     console.log("Entro pre");
-    return 500
+    return 520
   } else {
     let divi = 0
     if (number > 800) {
-      divi = (number / 10)
+      divi = (number / 15)
     }
     return number - divi
   }
 
 }
 
-async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
+async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, saleId, functionRes, res }) {
   try {
     //ANTES DE LA CREACION DEL DOC
     //TARIMAS
@@ -45,11 +45,14 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
     const WIDTH_FIN = WIDTH_DOC - 20
     const IVA = 5.0
     const FONT_SIZE = 8
-    const pre_Height = (500 + (TOTAL_ITEMS * 8.7))
+    const pre_Height = (520 + (TOTAL_ITEMS * 8.8))
     console.log(pre_Height);
     const HEIGHT_PAGE = roundToCentenary(pre_Height)
     console.log(HEIGHT_PAGE);
     const doc = new PDFDocument({ size: [WIDTH_DOC, HEIGHT_PAGE] });
+
+    //LOGO
+    const logoImage = path.join(__dirname, "./../../../../uploads/assets/images/logo.png");
 
     //titulo
     const y_init = 30
@@ -70,7 +73,7 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
     //LINEA 1
     y += 25
     doc.fontSize(FONT_SIZE).text(
-      "ARTMEX IMPORTS CORP DE RL DE cv",
+      "ARTMEX IMPORTS CORP",
       WIDTH_INICIO,
       y,
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
@@ -79,28 +82,20 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
     const SpacingLineY1 = 12
     y += SpacingLineY1
     doc.fontSize(FONT_SIZE).text(
-      "NEXTENGO 78 STA.CRUZ ACAVUCAN 02770",
+      "5701 W Ogden Ave. Cicero,",
       WIDTH_INICIO,
       y,
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
     )
-    //LINEA 3
-    y += SpacingLineY1
+    y += SpacingLineY1 - 4
     doc.fontSize(FONT_SIZE).text(
-      "A2CAPOTZALCO MEX CDMX RFC.NWM9709244W4",
-      WIDTH_INICIO,
-      y,
-      { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
-    )
-    y += SpacingLineY1 / 2
-    doc.fontSize(FONT_SIZE).text(
-      "UNIDAO COLON",
+      "IL, United States, Illinois",
       WIDTH_INICIO,
       y,
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
     )
 
-    //line 4
+    //line 3
     y += SpacingLineY1
     doc.fontSize(FONT_SIZE).text(
       "PERIF SUR7835COL STAMA TEOUEPEXPAN",
@@ -117,7 +112,7 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
       y,
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
     )
-    y += SpacingLineY1 / 2
+    y += SpacingLineY1 - 4
     doc.fontSize(FONT_SIZE).text(
       "REGIMEN FISCAL - 601",
       WIDTH_INICIO,
@@ -133,7 +128,7 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
       y,
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
     )
-    y += SpacingLineY1 / 2
+    y += SpacingLineY1 - 4
     doc.fontSize(FONT_SIZE).text(
       "EN LINEA 8009256278",
       WIDTH_INICIO,
@@ -146,20 +141,14 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
     //ENCABEZADO
     y += SpacingLineY1 + 5
     doc.fontSize(FONT_SIZE).text(
-      "QTY",
+      "ID",
       WIDTH_INICIO,
       y,
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
     )
     doc.fontSize(FONT_SIZE).text(
-      "ID",
-      WIDTH_INICIO + 20,
-      y,
-      { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
-    )
-    doc.fontSize(FONT_SIZE).text(
       "ARTICLE",
-      WIDTH_INICIO + 50,
+      WIDTH_INICIO + 30,
       y,
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
     )
@@ -180,20 +169,14 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
       }
       let tarima = tarimas[i]
       doc.fontSize(FONT_SIZE).text(
-        1,
+        tarima.tarima_id,
         WIDTH_INICIO,
         y,
         { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
       )
       doc.fontSize(FONT_SIZE).text(
-        tarima.tarima_id,
-        WIDTH_INICIO + 20,
-        y,
-        { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
-      )
-      doc.fontSize(FONT_SIZE).text(
         "tarima",
-        WIDTH_INICIO + 50,
+        WIDTH_INICIO + 30,
         y,
         { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
       )
@@ -215,21 +198,16 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
     for (let i = 0; i < boxes?.length; i++) {
       y += SpacingLineY1 - 5
       let box = boxes[i]
+      //box.boxes_count
       doc.fontSize(FONT_SIZE).text(
-        box.boxes_count,
+        box.id,
         WIDTH_INICIO,
         y,
         { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
       )
       doc.fontSize(FONT_SIZE).text(
-        box.id,
-        WIDTH_INICIO + 20,
-        y,
-        { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
-      )
-      doc.fontSize(FONT_SIZE).text(
-        "box",
-        WIDTH_INICIO + 50,
+        `${box.boxes_count} box`,
+        WIDTH_INICIO + 30,
         y,
         { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
       )
@@ -315,17 +293,17 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
     )
     doc.fontSize(FONT_SIZE).text(
       `${IVA}%`,
-      WIDTH_INICIO + 30,
+      WIDTH_INICIO + 40,
       y,
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
     )
-    const TOTAL_PRICE_IVA_APPLICATION = (TOTAL_PRICE - ((TOTAL_PRICE * IVA) / 100)).toFixed(2)
-    doc.fontSize(FONT_SIZE).text(
-      `$ ${TOTAL_PRICE_IVA_APPLICATION}`,
-      WIDTH_INICIO + 55,
-      y,
-      { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
-    )
+    // const TOTAL_PRICE_IVA_APPLICATION = (TOTAL_PRICE - ((TOTAL_PRICE * IVA) / 100)).toFixed(2)
+    // doc.fontSize(FONT_SIZE).text(
+    //   `$ ${TOTAL_PRICE_IVA_APPLICATION}`,
+    //   WIDTH_INICIO + 55,
+    //   y,
+    //   { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
+    // )
     const MONT_IVA = ((TOTAL_PRICE * IVA) / 100).toFixed(2)
     doc.fontSize(FONT_SIZE).text(
       `$`,
@@ -349,21 +327,6 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
 
     doc.rect(0, 0, 0, 0).fill("#000000")
 
-    //FINAL IVA
-    y += SpacingLineY1 - 7
-    doc.fontSize(FONT_SIZE).text(
-      `$`,
-      WIDTH_INICIO + 133,
-      y,
-      { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
-    )
-    doc.fontSize(FONT_SIZE).text(
-      `${MONT_IVA}`,
-      WIDTH_INICIO + 140,
-      y,
-      { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
-    )
-
 
     //CANTIDAD DE ARTICULOS VENDIDOS
     const totalItems = `${TOTAL_ITEMS} items sold`
@@ -373,7 +336,7 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
     );
     const px_toitem = (WIDTH_DOC - widthtoIte) / 2;
 
-    y += SpacingLineY1
+    y += SpacingLineY1 + 5
     doc.text(
       totalItems,
       px_toitem,
@@ -453,11 +416,23 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
       y,
       { lineBreak: false }
     );
-
+    //LOGO
+    y += SpacingLineY1 + 10
+    doc.image(
+      logoImage,
+      (WIDTH_FIN + WIDTH_INICIO) / 3,
+      y,
+      {
+        width: (WIDTH_FIN + WIDTH_INICIO) / 3,
+        height: (WIDTH_FIN + WIDTH_INICIO) / 3
+      }
+    );
     //FINAL
-    y += SpacingLineY1 + 15
-    const textF = `ASHI MORE THAN EFFECTIVE ll-A APP THAT HECOMPENDS YOURCOMPASlOBTEN 2% OF 
-    BONUS WHEN YOU MAKE 1U. PAYMENT`
+    y += SpacingLineY1 + 80
+    const textF = `THANK YOU FOR SHOPPING WITH ARTMEX
+WE CONTACT FOR MORE AT
+artmex.facturacion@gmail.com
++1 630-842-4166`
 
     doc.fontSize(FONT_SIZE).text(
       textF,
@@ -475,26 +450,26 @@ async function ticketDetailSale80mm({ tarimas, saleDetail, boxes, res }) {
 
     /********************************************************************************** */
     //GENERANDO EL PDF EN MEMORIA
-    // Generar el archivo PDF en memoria
     const buffers = [];
     doc.on("data", (chunk) => buffers.push(chunk));
     doc.on("end", () => {
       // Combinar los fragmentos del buffer en un solo buffer
       const pdfBuffer = Buffer.concat(buffers);
-
+      const namePath = `pdf_sale${saleId}.pdf`
+      const filePath = path.join(__dirname, `./../../../../uploads/pdf/sales/${namePath}`);
       // Guardar el archivo PDF en el sistema de archivos
-      const filePath = path.join(__dirname, "./pdf_momentaneo.pdf");
       fs.writeFileSync(filePath, pdfBuffer);
 
-      const newPdf = fs.readFileSync(filePath)
-      fs.unlinkSync(filePath);
+      //ejectuamos la callback en la que viene lo que queremos hacer
 
-      // Enviar el archivo PDF como respuesta
-      res.contentType("application/pdf");
-      res.send(newPdf);
+      functionRes({
+        res: res,
+        filePath: filePath,
+        namePath: namePath
+      })
+
     });
-
-    doc.end();
+    doc.end()
   } catch (error) {
     console.log("*** Error: **********");
     console.log(error);

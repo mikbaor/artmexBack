@@ -12,11 +12,12 @@ function roundToCentenary(number) {
     console.log("Entro pre");
     return 510
   } else {
-    let divi = 0
-    if (number > 800) {
-      divi = (number / 15)
-    }
-    return number - divi
+    // let divi = 0
+    // if (number > 1000) {
+    //   divi = (number / 20)
+    // }
+    // return number - divi
+    return number
   }
 
 }
@@ -44,7 +45,7 @@ async function ticketDetailSale58mm({ tarimas, saleDetail, boxes, saleId, functi
     const WIDTH_INICIO = 7
     const WIDTH_FIN = WIDTH_DOC - 7
     const IVA = 5.0
-    const FONT_SIZE = 8
+    const FONT_SIZE = 9
     const pre_Height = (510 + (TOTAL_ITEMS * 8.5))
     console.log(pre_Height);
     const HEIGHT_PAGE = roundToCentenary(pre_Height)
@@ -54,108 +55,127 @@ async function ticketDetailSale58mm({ tarimas, saleDetail, boxes, saleId, functi
     //LOGO
     const logoImage = path.join(__dirname, "./../../../../uploads/assets/images/logo.png");
 
+    //Datos de la empresa
+    const y_init = 20
+    let y = y_init
+    const SpacingLineY1 = 10
+
+    //LOGO
+    doc.image(
+      logoImage,
+      (WIDTH_FIN + WIDTH_INICIO) / 8,
+      y_init - 7,
+      {
+        width: (WIDTH_FIN + WIDTH_INICIO) / 5,
+        height: (WIDTH_FIN + WIDTH_INICIO) / 5
+      }
+    );
 
     //titulo
-    const y_init = 15
-    doc.font("Courier")
-    const tittle = "Artmex imports"
+    doc.font("Helvetica-Bold")
+    const tittle = "Wholesale"
     const widthTittle = doc.widthOfString(
       tittle,
       { align: "center", characterSpacing: 0.4, wordSpacing: 0.8 }
     );
     const posicionX1 = (WIDTH_DOC - widthTittle) / 2;
-    doc.fontSize(12).text(tittle, posicionX1, y_init, { lineBreak: false });
-
+    doc.fontSize(11).text(tittle, ((WIDTH_FIN + WIDTH_INICIO) / 8) + 51, y_init, { lineBreak: false });
+    //subtittle
+    doc.fontSize(9).font("Helvetica-Bold")
+    const subtittle = "Chicago & New York";
+    const widthSubtittle = doc.widthOfString(
+      subtittle,
+      { align: "center", characterSpacing: 0.4, wordSpacing: 0.8 }
+    );
+    const posicionX2 = (WIDTH_DOC - widthSubtittle) / 2;
+    doc.fontSize(8).text(subtittle, ((WIDTH_FIN + WIDTH_INICIO) / 8) + 40, y_init + 12, { lineBreak: false, characterSpacing: 0.1 });
 
     //espacio entre cada palabra
 
-    //Datos de la empresa
-    let y = y_init
-    const SpacingLineY1 = 10
     //LINEA 1
-    y += 25
-    doc.fontSize(FONT_SIZE).text(
-      "ARTMEX IMPORTS CORP DE RL DE CV",
+    y += SpacingLineY1 + 35
+    const direcc = `5701 West Ogden Ave Cicero, Illinois, Zip 60804
+Cell phone: 630 842 4166`
+
+    doc.font("Helvetica").fontSize(FONT_SIZE).text(
+      direcc,
       WIDTH_INICIO,
       y,
-      { lineBreak: false, align: "justify" }
-    )
-    //LINEA 2
-    y += SpacingLineY1
-    doc.fontSize(FONT_SIZE).text(
-      "NEXTENGO 78 STA.CRUZ ACAVUCAN",
-      WIDTH_INICIO,
-      y,
-      { lineBreak: false, align: "justify" }
-    )
-    y += SpacingLineY1 - 2
-    doc.fontSize(FONT_SIZE).text(
-      "02770",
-      WIDTH_INICIO,
-      y,
-      { lineBreak: false, align: "justify" }
-    )
-    //LINEA 3
-    y += SpacingLineY1
-    doc.fontSize(FONT_SIZE).text(
-      "A2CAPOTZALCO MEX CDMX",
-      WIDTH_INICIO,
-      y,
-      { lineBreak: false, align: "justify" }
-    )
-    y += SpacingLineY1 - 2
-    doc.fontSize(FONT_SIZE).text(
-      "RFC.NWM9709244W4 UNIDAO COLON",
-      WIDTH_INICIO,
-      y,
-      { lineBreak: false, align: "justify" }
+      {
+        width: (WIDTH_FIN - (WIDTH_INICIO)),
+        characterSpacing: 0.1,
+        wordSpacing: 0.1,
+        align: "center"
+      }
     )
 
-    //line 4
-    y += SpacingLineY1
-    doc.fontSize(FONT_SIZE).text(
-      "PERIF SUR7835COL STAMA",
+    //Linea 2
+    y += SpacingLineY1 + 25
+    const numOrder = `Order #${saleId ?? "pro"}`
+
+    doc.font("Helvetica").fontSize(FONT_SIZE).text(
+      numOrder,
       WIDTH_INICIO,
       y,
-      { lineBreak: false, align: "justify" }
+      {
+        width: (WIDTH_FIN - (WIDTH_INICIO)),
+        characterSpacing: 0.1,
+        wordSpacing: 0.1,
+        align: "center"
+      }
     )
 
-    //line5
-    y += SpacingLineY1
-    doc.fontSize(FONT_SIZE).text(
-      "QUEJAS V SUGERENCIAS",
+    //Linea 3
+    y += SpacingLineY1 + 10
+    const day1 = `${saleDetail.date.getDate()}/${saleDetail.date.getMonth() + 1}/${saleDetail.date.getFullYear()}`
+    const hour1 = `${saleDetail.date.getHours()}:${saleDetail.date.getMinutes()}:${saleDetail.date.getSeconds()}`;
+    const fecha = `${hour1} - ${day1}`
+
+    doc.font("Helvetica").fontSize(FONT_SIZE).text(
+      fecha,
       WIDTH_INICIO,
       y,
-      { lineBreak: false, align: "justify" }
-    )
-    y += SpacingLineY1 - 2
-    doc.fontSize(FONT_SIZE).text(
-      "BOO OOD 0096 REGIMEN",
-      WIDTH_INICIO,
-      y,
-      { lineBreak: false, align: "justify" }
+      {
+        width: (WIDTH_FIN - (WIDTH_INICIO)),
+        characterSpacing: 0.1,
+        wordSpacing: 0.1,
+        align: "center"
+      }
     )
 
-    //line 5
-    y += SpacingLineY1
-    doc.fontSize(FONT_SIZE).text(
-      "GENERAL OE LEY PERSONASMORALES ",
+    //CUSTOMER
+    y += SpacingLineY1 + 10
+    const customer = `customer: ${saleDetail.client_name}`
+    doc.font("Helvetica").fontSize(FONT_SIZE).text(
+      customer,
       WIDTH_INICIO,
       y,
-      { lineBreak: false, align: "justify" }
+      {
+        width: (WIDTH_FIN - (WIDTH_INICIO)),
+        characterSpacing: 0.1,
+        wordSpacing: 0.1,
+      }
     )
-    y += SpacingLineY1 - 2
-    doc.fontSize(FONT_SIZE).text(
-      "EN LINEA 8009256278",
+    //address
+    //CUSTOMER
+    y += SpacingLineY1 + 10
+    const customer_addres = `address: ${saleDetail.client_address}`
+    doc.font("Helvetica").fontSize(FONT_SIZE).text(
+      customer_addres,
       WIDTH_INICIO,
       y,
-      { lineBreak: false, align: "justify" }
+      {
+        width: (WIDTH_FIN - (WIDTH_INICIO)),
+        characterSpacing: 0.1,
+        wordSpacing: 0.1,
+      }
     )
+
 
 
     //PRODUCTS
     //ENCABEZADO
-    y += SpacingLineY1 + 5
+    y += SpacingLineY1 + 15
     doc.fontSize(FONT_SIZE).text(
       "ID",
       WIDTH_INICIO,
@@ -243,7 +263,7 @@ async function ticketDetailSale58mm({ tarimas, saleDetail, boxes, saleId, functi
 
 
     //TOTAL
-    y += SpacingLineY1 + 5
+    y += SpacingLineY1 + 10
     doc.fontSize(FONT_SIZE).text(
       "TOTAL",
       WIDTH_INICIO,
@@ -267,7 +287,7 @@ async function ticketDetailSale58mm({ tarimas, saleDetail, boxes, saleId, functi
     //TOTAL EN TEXTO
     doc.fontSize(FONT_SIZE)
     const totalWord = converter.toWords(TOTAL_PRICE)
-    y += SpacingLineY1 + 4
+    y += SpacingLineY1 + 10
     doc.text(
       totalWord,
       WIDTH_INICIO,
@@ -359,6 +379,15 @@ async function ticketDetailSale58mm({ tarimas, saleDetail, boxes, saleId, functi
 
 
     //CANTIDAD DE ARTICULOS VENDIDOS
+    //linea
+    doc.rect(
+      WIDTH_INICIO,
+      y += SpacingLineY1,
+      WIDTH_FIN - WIDTH_INICIO,
+      0.4)
+      .fill("#656565")
+    //texto
+    doc.rect(0, 0, 0, 0).fill("#000000")
     const totalItems = `${TOTAL_ITEMS} items sold`
     const widthtoIte = doc.widthOfString(
       totalItems,
@@ -366,46 +395,25 @@ async function ticketDetailSale58mm({ tarimas, saleDetail, boxes, saleId, functi
     );
     const px_toitem = (WIDTH_DOC - widthtoIte) / 2;
 
-    y += SpacingLineY1
+    y += SpacingLineY1 - 4
     doc.text(
       totalItems,
       px_toitem,
       y,
       { lineBreak: false }
     );
+    //linea
+    doc.rect(
+      WIDTH_INICIO,
+      y += SpacingLineY1,
+      WIDTH_FIN - WIDTH_INICIO,
+      0.4)
+      .fill("#656565")
 
-    //CLIENTE
-    y += SpacingLineY1 + 5
-    doc.text(
-      "CLIENT:",
-      WIDTH_INICIO,
-      y,
-      { lineBreak: false }
-    );
-    doc.text(
-      String(saleDetail.client_name).sliceName(),
-      WIDTH_INICIO + 40,
-      y,
-      { lineBreak: false }
-    );
-    //DATE
-    y += SpacingLineY1
-    const day = `${saleDetail.date.getDate()}/${saleDetail.date.getMonth() + 1}/${saleDetail.date.getFullYear()}`
-    const hour = `${saleDetail.date.getHours()}:${saleDetail.date.getMinutes()}:${saleDetail.date.getSeconds()}`;
-    doc.text(
-      "DATE:",
-      WIDTH_INICIO,
-      y,
-      { lineBreak: false }
-    );
-    doc.text(
-      `${hour} ${day}`,
-      WIDTH_INICIO + 30,
-      y,
-      { lineBreak: false }
-    );
+
     //STATUS PAY
-    y += SpacingLineY1
+    doc.fill("#000000")
+    y += SpacingLineY1 + 10
     doc.text(
       "STATUS PAY:",
       WIDTH_INICIO,
@@ -447,24 +455,27 @@ async function ticketDetailSale58mm({ tarimas, saleDetail, boxes, saleId, functi
       { lineBreak: false }
     );
 
-    //LOGO
-    doc.image(
-      logoImage,
-      (WIDTH_FIN + WIDTH_INICIO) / 3,
-      y + 20,
-      {
-        width: (WIDTH_FIN + WIDTH_INICIO) / 3,
-        height: (WIDTH_FIN + WIDTH_INICIO) / 3
-      }
-    );
+
 
     //FINAL
-    y += SpacingLineY1 + 75
-    const textF = `ASHI MORE THAN EFFECTIVE ll-A APP THAT HECOMPENDS YOURCOMPASlOBTEN 2% OF 
-    BONUS WHEN YOU MAKE 1U. PAYMENT`
-
+    y += SpacingLineY1 + 30
+    const textF = `Thank you for shopping with us.`
     doc.fontSize(FONT_SIZE).text(
       textF,
+      WIDTH_INICIO,
+      y,
+      {
+        width: (WIDTH_FIN - (WIDTH_INICIO)),
+        characterSpacing: 0.2,
+        wordSpacing: 0.1,
+        align: "center"
+      }
+    )
+    //web
+    y += SpacingLineY1 + 10
+    const textWeb = `www.artmeximportscorp.com`
+    doc.fontSize(FONT_SIZE).font("Helvetica-Bold").text(
+      textWeb,
       WIDTH_INICIO,
       y,
       {
@@ -482,8 +493,6 @@ async function ticketDetailSale58mm({ tarimas, saleDetail, boxes, saleId, functi
 
     const buffers = [];
     doc.on("data", (chunk) => buffers.push(chunk));
-    const pdfBuffer = Buffer.concat(buffers);
-
     doc.on("end", () => {
       // Combinar los fragmentos del buffer en un solo buffer
       const pdfBuffer = Buffer.concat(buffers);

@@ -441,11 +441,23 @@ const pdfTicketSale80mm = async (req, res) => {
 
     const [resTarimas, resBoxes, detailSale] = await Promise.all([promiseTarima, promiseBoxe, promiseDetail])
 
+    //function para resolve
+    function functionResPdf({ res, filePath, namePath }) {
+      const newPdf = fs.readFileSync(filePath)
+      fs.unlinkSync(filePath);
+
+      // Enviar el archivo PDF como respuesta
+      res.contentType("application/pdf");
+      res.send(newPdf);
+    }
+
     if (detailSale.length) {
-      await servicesPdf.ticketDetailSale80mm({
+      let filePathPdf = await servicesPdf.ticketDetailSale80mm({
         tarimas: resTarimas,
         saleDetail: detailSale[0],
         boxes: resBoxes,
+        saleId: saleId,
+        functionRes: functionResPdf,
         res: res
       })
     } else {
@@ -499,7 +511,7 @@ const pdfTicketSale58mm = async (req, res) => {
     }
 
     if (detailSale.length) {
-      let filePathPdf = await servicesPdf.ticketDetailSale58mm({
+      await servicesPdf.ticketDetailSale58mm({
         tarimas: resTarimas,
         saleDetail: detailSale[0],
         boxes: resBoxes,
@@ -523,33 +535,9 @@ const pdfTicketSale58mm = async (req, res) => {
 const emailDetailSale80mm = async (req, res) => {
   try {
     const saleId = req.body.saleId
-    const userId = req.body.userId
-
-
-    const userDetail = await User.findOne({
-      where: { id: User.id }
-    })
-    //emailTicketSale()
-
-
-    res.status(200).json({
-      message: "",
-      errorDetails: ""
-    })
-  } catch (error) {
-    throw new Error(error.message)
-  }
-}
-
-const emailDetailSale58mm = async (req, res) => {
-  try {
-    const saleId = req.body.saleId
-    const userId = req.body.userId
-
-    //emailTicketSale()
-    const userDetail = await User.findOne({
-      where: { id: userId }
-    })
+    //solo si envia email en el body se tomara este como destino del email
+    //si no se envia se tomara el del cliente defecto
+    const email = req.body.email
 
     //traemos los querys y hacemos las peticiones
     //tarimas
@@ -576,11 +564,76 @@ const emailDetailSale58mm = async (req, res) => {
     //callback para cuando se termina de crear el pdf
     function functionResEmail({ res, filePath, namePath }) {
       //ejecutamos la callback que enviara el email
+
       emailTicketSale({
         detailUser: detailSale[0],
         filePath: filePath,
         namePath: namePath,
+        res: res,
+        email: email ? email : detailSale[0].client_email
+      })
+
+    }
+
+    if (detailSale.length) {
+      await servicesPdf.ticketDetailSale80mm({
+        tarimas: resTarimas,
+        saleDetail: detailSale[0],
+        boxes: resBoxes,
+        saleId: saleId,
+        functionRes: functionResEmail,
         res: res
+      })
+    } else {
+      throw new Error("error in sales detail extraction")
+    }
+
+
+
+  } catch (error) {
+    throw new Error(error.message)
+  }
+}
+
+const emailDetailSale58mm = async (req, res) => {
+  try {
+    const saleId = req.body.saleId
+    //solo si envia email en el body se tomara este como destino del email
+    //si no se envia se tomara el del cliente defecto
+    const email = req.body.email
+
+    //traemos los querys y hacemos las peticiones
+    //tarimas
+    let queryTarimas = querySales.getTarimasSale()
+    let promiseTarima = conn.query(queryTarimas, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+    //cajas sueltas
+    let queryBoxes = querySales.getSeparateBoxes()
+    let promiseBoxe = conn.query(queryBoxes, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+    //extra details
+    let queryDetails = querySales.getDetailClientAndPay()
+    let promiseDetail = conn.query(queryDetails, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+
+    const [resTarimas, resBoxes, detailSale] = await Promise.all([promiseTarima, promiseBoxe, promiseDetail])
+
+    //callback para cuando se termina de crear el pdf
+    function functionResEmail({ res, filePath, namePath }) {
+      //ejecutamos la callback que enviara el email
+
+      emailTicketSale({
+        detailUser: detailSale[0],
+        filePath: filePath,
+        namePath: namePath,
+        res: res,
+        email: email ? email : detailSale[0].client_email
       })
 
     }

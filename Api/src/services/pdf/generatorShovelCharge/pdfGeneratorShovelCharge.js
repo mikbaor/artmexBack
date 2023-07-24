@@ -196,8 +196,8 @@ async function pdfShovelCharge({ idShovelCharge, detailShovel, res, dataTable })
     const cabecillaY = 526
     doc.rect(WIDTH_INICIO, cabecillaY - 6, WIDTH_FIN, 20).fill("#FC427B").stroke("#FC427B");
     doc.fillColor("#ffffff").text("ID", 80, cabecillaY, { width: 80 });
-    doc.text("Producto", 140, cabecillaY, { width: 100 });
-    doc.text("Descripcion", 250, cabecillaY, { width: 100 });
+    doc.text("Producto", 135, cabecillaY, { width: 100 });
+    doc.text("Descripcion", 320, cabecillaY, { width: 100 });
     //doc.text("tipo", 390, cabecillaY, { width: 100 });
     doc.text("Qty", 485, cabecillaY, { width: 100 });
 
@@ -213,18 +213,17 @@ async function pdfShovelCharge({ idShovelCharge, detailShovel, res, dataTable })
 
       let y = cabecillaY + (productNo * 30);
       doc.fillColor("#000").text(ele.id, 75, y, { width: 90 });
-      doc.text(String(ele.name).split('@')[0].sliceName(), 140, y, { width: 190 });
-      doc.text(`${ele.tipo}`.split('@')[0].sliceDescription(), 250, y, { width: 200, lineBreak: false });
-      //doc.text(String(ele.tipo).sliceTipo(), 390, y, { width: 100 });
+      doc.text(String(ele.name).replace(/@\s?/g, ' ').replace(/\s+/g, ' '), 135, y, { width: 175, lineBreak: false });
+      doc.text(String(ele.tipo).sliceDescription(), 320, y, { width: 250, lineBreak: false });
       doc.text(ele.ammount_total, 485, y, { width: 100 });
       TOTAL_AMMOUNT += Number(ele.ammount_total)
       productNo++;
 
       if (lastPagePrimary && i === arrayProducts[0].length - 1 && arrayProducts[0].length <= CUT_ARRAY) {
-        doc.rect(70, y + 20, 480, 0.4).fill("#000000").stroke("#000000");
+        doc.rect(70, y + 25, 480, 0.4).fill("#000000").stroke("#000000");
         //total
-        doc.font(fontBold).text("Total:", 390, y + 25);
-        doc.font(fontBold).text(TOTAL_AMMOUNT, 485, y + 25);
+        doc.font(fontBold).text("Total:", 390, y + 27);
+        doc.font(fontBold).text(TOTAL_AMMOUNT, 485, y + 27);
 
         doc.addPage()
         let separacionResultado = 0
@@ -277,8 +276,8 @@ async function pdfShovelCharge({ idShovelCharge, detailShovel, res, dataTable })
         doc.addPage();
         doc.rect(WIDTH_INICIO, inicioYRestantPage, WIDTH_FIN, 20).fill("#FC427B").stroke("#FC427B");
         doc.fillColor("#ffffff").text("ID", 80, inicioYRestantPage + 5, { width: 80 });
-        doc.text("Producto", 140, inicioYRestantPage + 5, { width: 100 });
-        doc.text("Descripcion", 250, inicioYRestantPage + 5, { width: 100 });
+        doc.text("Producto", 135, inicioYRestantPage + 5, { width: 100 });
+        doc.text("Descripcion", 320, inicioYRestantPage + 5, { width: 100 });
         //doc.text("tipo", 390, inicioYRestantPage + 5, { width: 100 });
         doc.text("Qty", 485, inicioYRestantPage + 5, { width: 100 });
 
@@ -289,20 +288,19 @@ async function pdfShovelCharge({ idShovelCharge, detailShovel, res, dataTable })
 
           let y = 80 + (productNo * 30);
           doc.fillColor("#000").text(ele.id, 75, y, { width: 90 });
-          doc.text(String(ele.name).split('@')[0].sliceName(), 140, y, { width: 190 });
-          doc.text(`${ele.tipo}`.split('@')[0].sliceDescription(), 250, y, { width: 200, lineBreak: false });
-          //doc.text(String(ele.tipo).sliceTipo(), 390, y, { width: 100 });
+          doc.text(String(ele.name).replace(/@\s?/g, ' ').replace(/\s+/g, ' '), 135, y, { width: 175, lineBreak: false });
+          doc.text(String(ele.tipo).sliceDescription(), 320, y, { width: 250, lineBreak: false });
           doc.text(ele.ammount_total, 485, y, { width: 100 });
           TOTAL_AMMOUNT += Number(ele.ammount_total)
           productNo++;
 
           if (lastPage && j === arrayProducts[i].length - 1 && arrayProducts[i].length <= 19) {
             console.log("ENTRA A LASTPAGE  menor 17");
-            doc.rect(WIDTH_INICIO, y + 20, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
+            doc.rect(WIDTH_INICIO, y + 25, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
 
             //TOTAL
-            doc.font(fontBold).text("Total:", 390, y + 25);
-            doc.font(fontBold).text(TOTAL_AMMOUNT, 485, y + 25);
+            doc.font(fontBold).text("Total:", 390, y + 27);
+            doc.font(fontBold).text(TOTAL_AMMOUNT, 485, y + 27);
 
             //observaciones
             if (arrayProducts[i].length <= 6) {
@@ -378,11 +376,11 @@ async function pdfShovelCharge({ idShovelCharge, detailShovel, res, dataTable })
           } else if (lastPage && j === arrayProducts[i].length - 1) {
             console.log("ENTRA A LASTPAGE");
             doc.addPage()
-            doc.rect(WIDTH_INICIO, inicioYRestantPage, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
+            doc.rect(WIDTH_INICIO, inicioYRestantPage + 5, WIDTH_FIN, 0.4).fill("#000000").stroke("#000000");
 
             //TOTAL
-            doc.font(fontBold).text("Total:", 390, inicioYRestantPage + 5);
-            doc.font(fontBold).text(TOTAL_AMMOUNT, 485, inicioYRestantPage + 5);
+            doc.font(fontBold).text("Total:", 390, inicioYRestantPage + 7);
+            doc.font(fontBold).text(TOTAL_AMMOUNT, 485, inicioYRestantPage + 7);
 
 
             //caja para observaciones
