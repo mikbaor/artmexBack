@@ -18,11 +18,14 @@ function emailTicketSale({ detailUser, filePath, namePath, res }) {
             user: user,
             pass: password,
         },
+        tls: {
+            rejectUnauthorized: false,
+          }
     });
 
     const mailOptions = {
         from: user,
-        to: detailUser.client_email,
+        to: "sebastianortiz@techmins.com.mx",//detailUser.client_email,
         subject: 'detailUser.client_email',
         html: htmlReceipt({ name: detailUser.client_name }),
         attachments: [
@@ -37,6 +40,7 @@ function emailTicketSale({ detailUser, filePath, namePath, res }) {
         if (error) {
             try {
                 fs.unlinkSync(filePath);
+                console.log(error)
             } catch (error) {
                 console.error(error);
             }
@@ -55,4 +59,4 @@ function emailTicketSale({ detailUser, filePath, namePath, res }) {
     });
 }
 
-module.exports = emailTicketSale
+module.exports = emailTicketSale
