@@ -23,6 +23,7 @@ const servicesPdf = require("./../services/pdf")
 const querySales = require("./querys/sale");
 const { QueryTypes, where } = require("sequelize");
 const emailTicketSale = require("../services/nodemailer/ticketSale");
+
 /*
 const createSale = async (req, res) => {
   const {
@@ -35,9 +36,12 @@ const createSale = async (req, res) => {
     totalAmmountPay,
     OrderExist,
     priceboxId,
+    taxPercentage,
+    taxAmmount,
+    ammountWTax,
+    change,
+    paymentMethods,
   } = req.body;
-  //costo de la tarima id
-  //costo de la caja id
 
   const transaction = await conn.transaction();
 
@@ -46,9 +50,26 @@ const createSale = async (req, res) => {
       {
         date,
         totalCost,
+        taxPercentage,
+        taxAmmount,
+        ammountWTax,
+        change,
       },
       { transaction }
     );
+
+    for (const payment of paymentMethods) {
+      const newPaymentMethod = await Paymentmethod.create(
+        {
+          ammount: payment.ammount,
+          paymentMethod: payment.paymentMethod,
+        },
+        { transaction }
+      );
+
+      await newPaymentMethod.setSale(newSale, { transaction });
+      await newSale.addPaymentmethods(newPaymentMethod, { transaction });
+    }
 
     if (req.files) {
       for (const file of req.files) {
@@ -58,9 +79,9 @@ const createSale = async (req, res) => {
           "/"
         )}`;
 
-        const urlCloud = await uploadImageSales(pathImage)
+        const urlCloud = await uploadImageSales(pathImage);
 
-        await fs.unlink(pathImage)
+        await fs.unlink(pathImage);
 
         const imagenesPath = await Salephotos.create(
           {
@@ -81,6 +102,7 @@ const createSale = async (req, res) => {
     if (tarimas) {
       for (const tar of tarimas) {
         const tarima = await Tarima.findByPk(tar.id);
+
         const cajasDeTarima = await tarima.getBoxes({
           attributes: ["id"],
         });
@@ -95,11 +117,14 @@ const createSale = async (req, res) => {
         joinBoxes = [...microBoxSales];
       }
       joinBoxes = joinBoxes.concat(cajasIds);
-      totalBoxes = joinBoxes.length
+      totalBoxes = joinBoxes.length;
     }
 
-    await Sale.update({ totalBoxes }, { where: { id: newSale.id } }, { transaction })
-
+    await Sale.update(
+      { totalBoxes },
+      { where: { id: newSale.id } },
+      { transaction }
+    );
 
     for (const microSale of joinBoxes) {
       const { ratio, boxId } = microSale;
@@ -215,7 +240,8 @@ const createSale = async (req, res) => {
         tipo: totalCost <= totalAmmountPay ? "unique" : "partial",
         status: totalCost <= totalAmmountPay ? "complete" : "pending",
         totalAmmountPay,
-        debtAmmount: totalCost <= totalAmmountPay ? 0 : totalCost - totalAmmountPay
+        debtAmmount:
+          totalCost <= totalAmmountPay ? 0 : totalCost - totalAmmountPay,
       },
       { transaction }
     );
@@ -238,10 +264,14 @@ const createSale = async (req, res) => {
           model: Payment,
         },
         {
+          model: Paymentmethod,
+        },
+        {
           model: Microsale,
           include: [
             {
               model: Box,
+              attributes: { exclude: ["etiqueta"] },
               include: [
                 {
                   model: Boxammount,
@@ -500,6 +530,7 @@ const pdfTicketSale58mm = async (req, res) => {
 
     const [resTarimas, resBoxes, detailSale] = await Promise.all([promiseTarima, promiseBoxe, promiseDetail])
 
+
     //function para resolve
     function functionResPdf({ res, filePath, namePath }) {
       const newPdf = fs.readFileSync(filePath)
@@ -623,7 +654,9 @@ const emailDetailSale58mm = async (req, res) => {
     });
 
     const [resTarimas, resBoxes, detailSale] = await Promise.all([promiseTarima, promiseBoxe, promiseDetail])
-
+    console.log("*********** CONTROLLER *********************");
+    console.log(detailSale[0].client_email);
+    console.log("********************************");
     //callback para cuando se termina de crear el pdf
     function functionResEmail({ res, filePath, namePath }) {
       //ejecutamos la callback que enviara el email

@@ -14,6 +14,18 @@ const saleModels = (sequelize)=>{
        totalCost:{
         type:DataTypes.FLOAT
        },
+       taxPercentage:{
+        type:DataTypes.FLOAT
+       },
+       taxAmmount:{
+        type:DataTypes.FLOAT
+       },
+       ammountWTax:{
+        type:DataTypes.FLOAT
+       },
+       change:{
+        type:DataTypes.FLOAT
+       },       
        totalBoxes:{
         type:DataTypes.INTEGER
        }

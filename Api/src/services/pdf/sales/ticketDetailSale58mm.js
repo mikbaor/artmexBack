@@ -8,9 +8,9 @@ function mmToPo(number) {
   return number * 2.83465
 }
 function roundToCentenary(number) {
-  if (number <= 510) {
+  if (number <= 515) {
     console.log("Entro pre");
-    return 510
+    return 515
   } else {
     // let divi = 0
     // if (number > 1000) {
@@ -46,7 +46,7 @@ async function ticketDetailSale58mm({ tarimas, saleDetail, boxes, saleId, functi
     const WIDTH_FIN = WIDTH_DOC - 7
     const IVA = 5.0
     const FONT_SIZE = 9
-    const pre_Height = (510 + (TOTAL_ITEMS * 8.5))
+    const pre_Height = (515 + (TOTAL_ITEMS * 8.5))
     console.log(pre_Height);
     const HEIGHT_PAGE = roundToCentenary(pre_Height)
     console.log(HEIGHT_PAGE);
@@ -54,6 +54,7 @@ async function ticketDetailSale58mm({ tarimas, saleDetail, boxes, saleId, functi
 
     //LOGO
     const logoImage = path.join(__dirname, "./../../../../uploads/assets/images/logo.png");
+    const adornoImage = path.join(__dirname, "./../../../../uploads/assets/images/adorno.png");
 
     //Datos de la empresa
     const y_init = 20
@@ -327,7 +328,7 @@ Cell phone: 630 842 4166`
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
     )
     doc.fontSize(FONT_SIZE).text(
-      `${IVA}%`,
+      `${saleDetail.sale_pecentage_iva}%`,
       WIDTH_INICIO + 30,
       y,
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
@@ -347,7 +348,7 @@ Cell phone: 630 842 4166`
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
     )
     doc.fontSize(FONT_SIZE).text(
-      `${MONT_IVA}`,
+      `${saleDetail.sale_tax_ammount}`,
       WIDTH_INICIO + 100,
       y,
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
@@ -458,7 +459,7 @@ Cell phone: 630 842 4166`
 
 
     //FINAL
-    y += SpacingLineY1 + 30
+    y += SpacingLineY1 + 25
     const textF = `Thank you for shopping with us.`
     doc.fontSize(FONT_SIZE).text(
       textF,
@@ -472,7 +473,7 @@ Cell phone: 630 842 4166`
       }
     )
     //web
-    y += SpacingLineY1 + 10
+    y += SpacingLineY1 + 5
     const textWeb = `www.artmeximportscorp.com`
     doc.fontSize(FONT_SIZE).font("Helvetica-Bold").text(
       textWeb,
@@ -485,6 +486,18 @@ Cell phone: 630 842 4166`
         align: "center"
       }
     )
+
+    //LOGO ADORNO
+    y += SpacingLineY1 + 10
+    doc.image(
+      adornoImage,
+      (WIDTH_FIN + WIDTH_INICIO) / 3,
+      y,
+      {
+        width: (WIDTH_FIN + WIDTH_INICIO) / 3,
+      }
+    );
+
 
 
     /********************************************************************************** */

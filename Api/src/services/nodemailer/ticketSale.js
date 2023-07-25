@@ -7,6 +7,12 @@ const hostEmail = "imap.titan.email"
 const port = 465
 
 function emailTicketSale({ detailUser, filePath, namePath, res, email }) {
+    console.log("*********** DETAIL *********************");
+    console.log(detailUser.client_email);
+    console.log("********************************");
+    console.log("*********** EMAIL *********************");
+    console.log(email);
+    console.log("********************************");
     try {
         const transporter = nodemailer.createTransport({
             //host: hostEmail,
@@ -18,6 +24,7 @@ function emailTicketSale({ detailUser, filePath, namePath, res, email }) {
                 pass: password,
             },
         });
+
 
         const mailOptions = {
             from: user,
@@ -34,27 +41,18 @@ function emailTicketSale({ detailUser, filePath, namePath, res, email }) {
         // Enviar el correo
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
-                try {
-                    console.error(error);
-                    fs.unlinkSync(filePath);
-                } catch (error) {
-                    console.error(error);
-                }
+                fs.unlink(filePath)
+                console.error(error);
             } else {
-                try {
-                    fs.unlinkSync(filePath);
-                    console.log("Correo enviado exitosamente");
-                } catch (error) {
-                    console.error(error);
-                }
-
+                fs.unlink(filePath)
+                console.log("mensaje enviado correctamente");
             }
-        });
+
+        })
         res.status(200).json({
-            message: "mail sent successfully",
-        });
+            message: "mensaje enviado",
+        })
     } catch (error) {
-        console.error();
         res.status(400).json({
             message: "error",
             errorDetails: error.message
