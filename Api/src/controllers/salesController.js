@@ -101,11 +101,11 @@ const createSale = async (req, res) => {
     let totalBoxes = 0;
     if (tarimas) {
       for (const tar of tarimas) {
-        const tarima = await Tarima.findByPk(tar.id);
+        const tarima = await Tarima.findByPk(tar.id, { transaction });
 
         const cajasDeTarima = await tarima.getBoxes({
           attributes: ["id"],
-        });
+        }, { transaction });
 
         const cajasDeTarimaConRatio = cajasDeTarima.map((cajaId) => ({
           boxId: cajaId.dataValues.id,
@@ -129,9 +129,9 @@ const createSale = async (req, res) => {
     for (const microSale of joinBoxes) {
       const { ratio, boxId } = microSale;
 
-      const box = await Box.findByPk(
+      const box = await Box.findByPk(        
         boxId,
-        {
+        {         
           include: [
             {
               model: Boxammount,
@@ -145,10 +145,10 @@ const createSale = async (req, res) => {
         },
         { transaction }
       );
-
+  
       const ratioState = await Pricebox.findByPk(priceboxId);
 
-      let priceBox;
+      let priceBox;      
 
       if (ratio) {
         priceBox = ratio * box.dataValues.dollarCost;
@@ -174,6 +174,8 @@ const createSale = async (req, res) => {
       if (transit) {
         await transit.removeBox(box, { transaction });
       }
+
+      
 
       for (const boxAmmount of box.Boxammounts) {
         const { ammount, Product: product } = boxAmmount.dataValues;
@@ -207,10 +209,15 @@ const createSale = async (req, res) => {
         }
       }
 
-      box.update(
+      
+
+     await Box.update(
         {
           itsSell: true,
         },
+        {
+          where: { id: box.id },          
+        },        
         { transaction }
       );
 
@@ -223,13 +230,14 @@ const createSale = async (req, res) => {
           { transaction }
         );
       } else {
-        const newMicroSale = await Microsale.create(
+        newMicroSale = await Microsale.create(
           {
             priceBox,
           },
           { transaction }
         );
       }
+      
 
       await newMicroSale.setSale(newSale, { transaction });
       await newMicroSale.setBox(box, { transaction });
@@ -287,8 +295,64 @@ const createSale = async (req, res) => {
         },
       ],
     });
+//
 
-    res.status(200).json(sale);
+    const saleId = newSale.id;   
+
+    //emailTicketSale()
+    const userDetail = await User.findOne({
+      where: { id: userId },
+    });
+
+    //traemos los querys y hacemos las peticiones
+    //tarimas
+    let queryTarimas = querySales.getTarimasSale();
+    let promiseTarima = conn.query(queryTarimas, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+    //cajas sueltas
+    let queryBoxes = querySales.getSeparateBoxes();
+    let promiseBoxe = conn.query(queryBoxes, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+    //extra details
+    let queryDetails = querySales.getDetailClientAndPay();
+    let promiseDetail = conn.query(queryDetails, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+
+    const [resTarimas, resBoxes, detailSale] = await Promise.all([
+      promiseTarima,
+      promiseBoxe,
+      promiseDetail,
+    ]);
+
+    function functionResEmail({ res, filePath, namePath }) {
+      //ejecutamos la callback que enviara el email
+      emailTicketSale({
+        detailUser: detailSale[0],
+        filePath: filePath,
+        namePath: namePath,
+        res: res
+      })
+    }
+
+    if (detailSale.length) {
+      await servicesPdf.ticketDetailSale58mm({
+        tarimas: resTarimas,
+        saleDetail: detailSale[0],
+        boxes: resBoxes,
+        saleId: saleId,
+        functionRes: functionResEmail,
+        res: res,
+      });
+    } else {
+      throw new Error("error in sales detail extraction");
+    }   
+    
   } catch (error) {
     if (
       transaction.finished !== "commit" &&
@@ -296,6 +360,7 @@ const createSale = async (req, res) => {
     ) {
       await transaction.rollback();
     }
+    console.log(error)
     res.status(400).json({ error: error.message });
   }
 };
@@ -694,8 +759,8 @@ const emailDetailSale58mm = async (req, res) => {
 
 module.exports = {
   /*createSale,
-  getAllSales,
-  csvSales,*/
+  getAllSales,*/
+  csvSales,
   pdfTicketSale80mm,
   pdfTicketSale58mm,
   emailDetailSale80mm,
