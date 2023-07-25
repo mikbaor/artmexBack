@@ -759,8 +759,8 @@ const emailDetailSale58mm = async (req, res) => {
 
 module.exports = {
   /*createSale,
-  getAllSales,*/
-  csvSales,
+  getAllSales,
+  csvSales,*/
   pdfTicketSale80mm,
   pdfTicketSale58mm,
   emailDetailSale80mm,
