@@ -23,6 +23,9 @@ function emailTicketSale({ detailUser, filePath, namePath, res, email }) {
                 user: user,
                 pass: password,
             },
+            tls: {
+                rejectUnauthorized: false,
+              }            
         });
 
 
