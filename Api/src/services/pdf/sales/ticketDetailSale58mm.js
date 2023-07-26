@@ -8,9 +8,9 @@ function mmToPo(number) {
   return number * 2.83465
 }
 function roundToCentenary(number) {
-  if (number <= 515) {
+  if (number <= 600) {
     console.log("Entro pre");
-    return 515
+    return 600
   } else {
     // let divi = 0
     // if (number > 1000) {
@@ -46,7 +46,9 @@ async function ticketDetailSale58mm({ tarimas, saleDetail, boxes, saleId, functi
     const WIDTH_FIN = WIDTH_DOC - 7
     const IVA = 5.0
     const FONT_SIZE = 9
-    const pre_Height = (515 + (TOTAL_ITEMS * 8.5))
+    let TOTAL_HEIGHT_PAYMENTS = 0
+    saleDetail.payment_methods?.forEach(ele => ele.ammount > 0 ? TOTAL_HEIGHT_PAYMENTS += 24 : TOTAL_HEIGHT_PAYMENTS += 0)
+    const pre_Height = (540 + (TOTAL_ITEMS * 8.5)) + (TOTAL_HEIGHT_PAYMENTS)
     console.log(pre_Height);
     const HEIGHT_PAGE = roundToCentenary(pre_Height)
     console.log(HEIGHT_PAGE);
@@ -111,7 +113,7 @@ Cell phone: 630 842 4166`
     )
 
     //Linea 2
-    y += SpacingLineY1 + 25
+    y += SpacingLineY1 + 28
     const numOrder = `Order #${saleId ?? "pro"}`
 
     doc.font("Helvetica").fontSize(FONT_SIZE).text(
@@ -348,7 +350,7 @@ Cell phone: 630 842 4166`
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
     )
     doc.fontSize(FONT_SIZE).text(
-      `${saleDetail.sale_tax_ammount}`,
+      `${saleDetail.sale_tax_ammount.toFixed(2)}`,
       WIDTH_INICIO + 100,
       y,
       { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
@@ -363,20 +365,6 @@ Cell phone: 630 842 4166`
 
     doc.rect(0, 0, 0, 0).fill("#000000")
 
-    //FINAL IVA
-    /*y += SpacingLineY1 - 7
-    doc.fontSize(FONT_SIZE).text(
-      `$`,
-      WIDTH_INICIO + 95,
-      y,
-      { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
-    )
-    doc.fontSize(FONT_SIZE).text(
-      `${MONT_IVA}`,
-      WIDTH_INICIO + 100,
-      y,
-      { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
-    )*/
 
 
     //CANTIDAD DE ARTICULOS VENDIDOS
@@ -414,50 +402,79 @@ Cell phone: 630 842 4166`
 
     //STATUS PAY
     doc.fill("#000000")
-    y += SpacingLineY1 + 10
-    doc.text(
-      "STATUS PAY:",
+    y += 7
+    //tittle
+    y += SpacingLineY1
+    const textPay = `Payment`
+    doc.fontSize(FONT_SIZE).text(
+      textPay,
       WIDTH_INICIO,
       y,
-      { lineBreak: false }
-    );
+      {
+        width: (WIDTH_FIN - (WIDTH_INICIO)),
+        characterSpacing: 0.2,
+        wordSpacing: 0.1,
+        align: "center"
+      }
+    )
+
+    //for los metodos de pago
+    y += 5
+    saleDetail.payment_methods?.forEach((ele) => {
+      if (ele.ammount > 0) {
+        y += SpacingLineY1
+        doc.text(
+          `Method:  ${ele.method}`,
+          WIDTH_INICIO,
+          y,
+          { lineBreak: false }
+        );
+        y += SpacingLineY1
+        doc.text(
+          `Amount:  $${ele.ammount}`,
+          WIDTH_INICIO,
+          y,
+          { lineBreak: false }
+        );
+        y += SpacingLineY1 - 5
+      }
+
+    })
+    //status
+    y += SpacingLineY1
     doc.text(
-      `${saleDetail.payment_status}`,
-      WIDTH_INICIO + 60,
+      `Status pay:  ${saleDetail.payment_status}`,
+      WIDTH_INICIO,
       y,
       { lineBreak: false }
     );
     //PAYMENT PAY
     y += SpacingLineY1
     doc.text(
-      "PAID:",
+      `Paid:  $${saleDetail?.payment_pay.toFixed(2)}`,
       WIDTH_INICIO,
-      y,
-      { lineBreak: false }
-    );
-    doc.text(
-      `$ ${saleDetail?.payment_pay.toFixed(2)}`,
-      WIDTH_INICIO + 30,
       y,
       { lineBreak: false }
     );
     //PAYMENT DEBT
     y += SpacingLineY1
     doc.text(
-      "DEBT:",
+      `Debt:  $${saleDetail.payment_debt.toFixed(2)}`,
       WIDTH_INICIO,
       y,
       { lineBreak: false }
     );
+    //CHANGE
+    y += SpacingLineY1
     doc.text(
-      `$ ${saleDetail.payment_debt.toFixed(2)}`,
-      WIDTH_INICIO + 30,
+      `Change:  $${saleDetail.sale_change}`,
+      WIDTH_INICIO,
       y,
       { lineBreak: false }
     );
 
 
-
+    /******************************************************** */
     //FINAL
     y += SpacingLineY1 + 25
     const textF = `Thank you for shopping with us.`
@@ -472,6 +489,7 @@ Cell phone: 630 842 4166`
         align: "center"
       }
     )
+
     //web
     y += SpacingLineY1 + 5
     const textWeb = `www.artmeximportscorp.com`

@@ -719,9 +719,7 @@ const emailDetailSale58mm = async (req, res) => {
     });
 
     const [resTarimas, resBoxes, detailSale] = await Promise.all([promiseTarima, promiseBoxe, promiseDetail])
-    console.log("*********** CONTROLLER *********************");
-    console.log(detailSale[0].client_email);
-    console.log("********************************");
+
     //callback para cuando se termina de crear el pdf
     function functionResEmail({ res, filePath, namePath }) {
       //ejecutamos la callback que enviara el email
