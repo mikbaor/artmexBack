@@ -25,7 +25,7 @@ function emailTicketSale({ detailUser, filePath, namePath, res }) {
 
     const mailOptions = {
         from: user,
-        to: "sebastianortiz@techmins.com.mx",//detailUser.client_email,
+        to: detailUser.client_email,
         subject: 'detailUser.client_email',
         html: htmlReceipt({ name: detailUser.client_name }),
         attachments: [
