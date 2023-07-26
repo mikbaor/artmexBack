@@ -58,11 +58,11 @@ function emailTicketSale({ detailUser, filePath, namePath, res, email }) {
             } else {
                 console.log("correo enviado correctamente");
             }
-            /*try {
-                fs.unlink(filePath)
+            try {
+                fs.unlinkSync(filePath);
             } catch (error) {
                 console.log(error);
-            }*/
+            }
 
         })
         res.status(200).json({
