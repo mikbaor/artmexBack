@@ -1,24 +1,30 @@
 const nodemailer = require('nodemailer');
 const fs = require("fs");
 const htmlReceipt = require('./html/receiptSale');
+require("dotenv").config();
+
+
 const user = "temgojob@gmail.com"
 const password = "obwpzylqkxpmitbt"
 const hostEmail = "imap.titan.email"
 const port = 465
 
+const { USER_EMAIL, PASSWORD_EMAIL, HOST_EMAIL, PORT_SSL_EMAIL } = process.env;
+
+
+
 function emailTicketSale({ detailUser, filePath, namePath, res, email }) {
-    console.log("*********** DETAIL *********************");
-    console.log(detailUser.client_email);
-    console.log("********************************");
-    console.log("*********** EMAIL *********************");
-    console.log(email);
-    console.log("********************************");
     try {
         const transporter = nodemailer.createTransport({
-            //host: hostEmail,
-            //port: 465,
-            //secure: true,
-            service: 'gmail',
+            //host: HOST_EMAIL,
+            service: "gmail",
+            //host: 'smtp-mail.outlook.com', // Servidor SMTP de Outlook
+            //port: Number(PORT_SSL_EMAIL),
+            secure: false,
+            // tls: {
+            //     ciphers: "SSLv3",
+            //     rejectUnauthorized: false,
+            // },
             auth: {
                 user: user,
                 pass: password,
@@ -32,7 +38,7 @@ function emailTicketSale({ detailUser, filePath, namePath, res, email }) {
         const mailOptions = {
             from: user,
             to: email,//detailUser.client_email,
-            subject: 'detailUser.client_email',
+            subject: 'RECEIPT',
             html: htmlReceipt({ name: detailUser.client_name }),
             attachments: [
                 {
@@ -44,11 +50,21 @@ function emailTicketSale({ detailUser, filePath, namePath, res, email }) {
         // Enviar el correo
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
-                fs.unlink(filePath)
+                console.log("no se pudo enviar el correo");
+                console.log("****** ERROR ******");
                 console.error(error);
+                console.log("****** ERROR ******");
+                console.log("****** INFO ******");
+                console.log(info);
+                console.log("****** INFO ******");
+
             } else {
-                fs.unlink(filePath)
-                console.log("mensaje enviado correctamente");
+                console.log("correo enviado correctamente");
+            }
+            try {
+                fs.unlinkSync(filePath);
+            } catch (error) {
+                console.log(error);
             }
 
         })
