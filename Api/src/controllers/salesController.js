@@ -11,6 +11,7 @@ const {
   Pricebox,
   Boxammount,
   Salephotos,
+  Paymentmethod,
   conn,
 } = require("../connection/db");
 const { tarimasAcajas } = require("../handlers/desentarimar");
@@ -57,7 +58,6 @@ const createSale = async (req, res) => {
       },
       { transaction }
     );
-
     for (const payment of paymentMethods) {
       const newPaymentMethod = await Paymentmethod.create(
         {
@@ -70,7 +70,6 @@ const createSale = async (req, res) => {
       await newPaymentMethod.setSale(newSale, { transaction });
       await newSale.addPaymentmethods(newPaymentMethod, { transaction });
     }
-
     /*if (req.files) {
       for (const file of req.files) {
         pathImage = file.path;
@@ -79,17 +78,17 @@ const createSale = async (req, res) => {
           "/"
         )}`;
 
-        const urlCloud = await uploadImageSales(pathImage);
+      //  const urlCloud = await uploadImageSales(pathImage);
 
         await fs.unlink(pathImage);
 
-        const imagenesPath = await Salephotos.create(
-          {
-            path: urlCloud.secure_url,
-          },
-          { transaction }
-        );
-        await imagenesPath.setSale(newSale, { transaction });
+        // const imagenesPath = await Salephotos.create(
+        //   {
+        //     path: urlCloud.secure_url,
+        //   },
+        //   { transaction }
+        // );
+        // await imagenesPath.setSale(newSale, { transaction });
       }
     }
     */
@@ -100,9 +99,13 @@ const createSale = async (req, res) => {
     let cajasIds = [];
     let joinBoxes = [];
     let totalBoxes = 0;
+
     if (tarimas) {
       for (const tar of tarimas) {
-        const tarima = await Tarima.findByPk(tar.id);
+        const tarima = await Tarima.findByPk(tar.id, { transaction });
+        await tarima.update({ itsSell: true })
+        await newSale.addTarima(tarima, { transaction })
+        await tarima.setSale(newSale, { transaction })
 
         const cajasDeTarima = await tarima.getBoxes({
           attributes: ["id"],
@@ -114,12 +117,13 @@ const createSale = async (req, res) => {
         }));
         cajasIds = cajasIds.concat(cajasDeTarimaConRatio);
       }
-      if (microBoxSales) {
-        joinBoxes = [...microBoxSales];
-      }
-      joinBoxes = joinBoxes.concat(cajasIds);
-      totalBoxes = joinBoxes.length;
     }
+
+    if (microBoxSales) {
+      joinBoxes = [...microBoxSales];
+    }
+    joinBoxes = joinBoxes.concat(cajasIds);
+    totalBoxes = joinBoxes.length;
 
     await Sale.update(
       { totalBoxes },
@@ -215,34 +219,26 @@ const createSale = async (req, res) => {
         { transaction }
       );
 
-      let newMicroSale;
-      if (ratio) {
-        newMicroSale = await Microsale.create(
-          {
-            priceBox,
-          },
-          { transaction }
-        );
-      } else {
-        const newMicroSale = await Microsale.create(
-          {
-            priceBox,
-          },
-          { transaction }
-        );
-      }
+      const newMicroSale = await Microsale.create(
+        {
+          priceBox,
+        },
+        { transaction }
+      );
 
       await newMicroSale.setSale(newSale, { transaction });
+      await newSale.addMicrosales(newMicroSale, { transaction });
+      await box.setMicrosale(newMicroSale, { transaction });
       await newMicroSale.setBox(box, { transaction });
     }
 
     const payment = await Payment.create(
       {
-        tipo: totalCost <= totalAmmountPay ? "unique" : "partial",
-        status: totalCost <= totalAmmountPay ? "complete" : "pending",
+        tipo: ammountWTax <= totalAmmountPay ? "unique" : "partial",
+        status: ammountWTax <= totalAmmountPay ? "complete" : "pending",
         totalAmmountPay,
         debtAmmount:
-          totalCost <= totalAmmountPay ? 0 : totalCost - totalAmmountPay,
+          ammountWTax <= totalAmmountPay ? 0 : ammountWTax - totalAmmountPay,
       },
       { transaction }
     );
@@ -250,6 +246,7 @@ const createSale = async (req, res) => {
     await newSale.setUser(user, { transaction });
     await newSale.setClient(client, { transaction });
     await newSale.setPayment(payment, { transaction });
+    await payment.setSale(newSale, { transaction })
 
     await transaction.commit();
 
@@ -289,8 +286,68 @@ const createSale = async (req, res) => {
       ],
     });
 
-    res.status(200).json(sale);
+    const saleId = newSale.id;
+    //solo si envia email en el body se tomara este como destino del email
+    //si no se envia se tomara el del cliente defecto
+    const email = req.body.email;
+
+    //traemos los querys y hacemos las peticiones
+    //tarimas
+    let queryTarimas = querySales.getTarimasSale();
+    let promiseTarima = conn.query(queryTarimas, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+    //cajas sueltas
+    let queryBoxes = querySales.getSeparateBoxes();
+    let promiseBoxe = conn.query(queryBoxes, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+    //extra details
+    let queryDetails = querySales.getDetailClientAndPay();
+    let promiseDetail = conn.query(queryDetails, {
+      replacements: { saleId: saleId },
+      type: QueryTypes.SELECT,
+    });
+
+    const [resTarimas, resBoxes, detailSale] = await Promise.all([
+      promiseTarima,
+      promiseBoxe,
+      promiseDetail,
+    ]);
+    console.log("*********** CONTROLLER *********************");
+    console.log(detailSale[0].client_email);
+    console.log("********************************");
+    //callback para cuando se termina de crear el pdf
+    function functionResEmail({ res, filePath, namePath }) {
+      //ejecutamos la callback que enviara el email
+
+      emailTicketSale({
+        detailUser: detailSale[0],
+        filePath: filePath,
+        namePath: namePath,
+        res: res,
+        email: email ? email : detailSale[0].client_email,
+      });
+    }
+
+    if (detailSale.length) {
+      await servicesPdf.ticketDetailSale58mm({
+        tarimas: resTarimas,
+        saleDetail: detailSale[0],
+        boxes: resBoxes,
+        saleId: saleId,
+        functionRes: functionResEmail,
+        res: res,
+      });
+    } else {
+      throw new Error("error in sales detail extraction");
+    }
+
+    //res.status(200).json(sale)
   } catch (error) {
+    console.log(error);
     if (
       transaction.finished !== "commit" &&
       transaction.finished !== "rollback"
@@ -300,6 +357,10 @@ const createSale = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+
+
+
 
 const getAllSales = async (req, res) => {
   const { userId, clientId, statusPayment } = req.query;
@@ -443,7 +504,7 @@ const csvSales = async (req, res) => {
   }
 
 
-}//*/
+}
 
 const pdfTicketSale80mm = async (req, res) => {
   try {
@@ -692,9 +753,9 @@ const emailDetailSale58mm = async (req, res) => {
 
 
 module.exports = {
-  createSale,
   getAllSales,
   csvSales,
+  createSale,
   pdfTicketSale80mm,
   pdfTicketSale58mm,
   emailDetailSale80mm,

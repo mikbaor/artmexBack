@@ -23,7 +23,7 @@ function getTarimasSale() {
 function getSeparateBoxes() {
     ////variables
     //saleId
-    return `
+    let antiguoQuery = `
     SELECT
         bx.id,
         bx.cost,
@@ -32,6 +32,19 @@ function getSeparateBoxes() {
     FROM "Microsales" AS micro_sale
         INNER JOIN "Boxes" bx on bx.id = micro_sale."BoxId" AND bx."itsSell"
             AND (bx."SubstoreId" IS NOT NULL OR bx."TransitId" IS NOT NULL)
+    WHERE micro_sale."SaleId" = :saleId
+    GROUP BY bx.id, bx.cost, bx."dollarCost"
+    `
+
+    return `
+    SELECT
+        bx.id,
+        bx.cost,
+        bx."dollarCost",
+        COUNT(bx) as "boxes_count"
+    FROM "Microsales" AS micro_sale
+        INNER JOIN "Boxes" bx on bx.id = micro_sale."BoxId" AND bx."itsSell" AND  bx."TarimaId" IS NULL
+            AND (bx."SubstoreId" IS NOT null OR bx."TransitId" IS NOT null or bx."TarimaId" IS NULL)
     WHERE micro_sale."SaleId" = :saleId
     GROUP BY bx.id, bx.cost, bx."dollarCost"
     `

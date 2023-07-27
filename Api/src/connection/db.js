@@ -44,8 +44,8 @@ const fotoChofersModel = require("../models/fotosChofer");
 const printerModel = require("../models/printer");
 const checkModels = require("../models/checador");
 const checkPassModel = require("../models/checkinpass");
+const paymentMethodModel = require("../models/paymentMethods");
 //const bankModel = require("../models/bank");
-
 
 //definificion de los datos de la conexion
 const { DB_USER, DB_NAME, DB_PASSWORD, DB_PORT, DB_HOST } = process.env;
@@ -91,19 +91,19 @@ trailersModel(sequelize);
 weighterModels(sequelize);
 microOrdersModels(sequelize);
 ordersModels(sequelize);
-saleModels(sequelize)
-microSalesModels(sequelize)
-paymentsModels(sequelize)
-microPaymentsModels(sequelize)
-desentarimadoModel(sequelize)
-priceBoxesModel(sequelize)
-fotoSalesModel(sequelize)
-fotoChofersModel(sequelize)
-printerModel(sequelize)
-checkModels(sequelize)
-checkPassModel(sequelize)
+saleModels(sequelize);
+microSalesModels(sequelize);
+paymentsModels(sequelize);
+microPaymentsModels(sequelize);
+desentarimadoModel(sequelize);
+priceBoxesModel(sequelize);
+fotoSalesModel(sequelize);
+fotoChofersModel(sequelize);
+printerModel(sequelize);
+checkModels(sequelize);
+checkPassModel(sequelize);
+paymentMethodModel(sequelize);
 //bankModel(sequelize)
-
 
 //desestructurados los modelos que hemos guardado en sequelize
 const {
@@ -148,7 +148,8 @@ const {
   Chofersphotos,
   Printer,
   Checker,
-  Checkpass
+  Checkpass,
+  Paymentmethod,
 } = sequelize.models;
 
 //RELACIONES DE LOS MODELOS
@@ -174,8 +175,8 @@ User.hasMany(Permission);
 User.belongsTo(Address);
 User.hasMany(Product);
 Product.belongsTo(User);
-User.hasMany(Checker)
-Checker.belongsTo(User)
+User.hasMany(Checker);
+Checker.belongsTo(User);
 
 //relacion de Almacenes
 User.hasMany(Store);
@@ -294,42 +295,48 @@ Transit.hasMany(Box);
 //relaciones de pedidos
 Order.hasMany(Microorder);
 Microorder.belongsTo(Order);
-Microorder.belongsTo(Product)
-Product.hasMany(Microorder)
-Order.belongsTo(User)
-User.hasMany(Order)
-Order.belongsTo(Client)
-Client.hasMany(Order)
-Order.belongsTo(Sale)
+Microorder.belongsTo(Product);
+Product.hasMany(Microorder);
+Order.belongsTo(User);
+User.hasMany(Order);
+Order.belongsTo(Client);
+Client.hasMany(Order);
+Order.belongsTo(Sale);
 
 //relaciones de ventas
-Sale.hasMany(Microsale)
-Microsale.belongsTo(Sale)
-Microsale.belongsTo(Box)
-Sale.belongsTo(Payment)
-Payment.hasMany(Micropayment)
-Micropayment.belongsTo(Payment)
-Sale.belongsTo(User)
-User.hasMany(Sale)
-Sale.belongsTo(Client)
-Client.hasMany(Sale)
-Sale.belongsTo(Order)
-Sale.hasMany(Salephotos)
-Salephotos.belongsTo(Sale)
+Sale.hasMany(Microsale);
+Microsale.belongsTo(Sale);
+Microsale.belongsTo(Box);
+Box.belongsTo(Microsale);
+Sale.belongsTo(Payment);
+Payment.belongsTo(Sale);
+Payment.hasMany(Micropayment);
+Micropayment.belongsTo(Payment);
+Sale.belongsTo(User);
+User.hasMany(Sale);
+Sale.belongsTo(Client);
+Client.hasMany(Sale);
+Sale.belongsTo(Order);
+Sale.hasMany(Salephotos);
+Salephotos.belongsTo(Sale);
+Sale.hasMany(Paymentmethod);
+Paymentmethod.belongsTo(Sale);
+Sale.hasMany(Tarima);
+Tarima.belongsTo(Sale);
 
 //relaciones de Desentarimado
-Desentarimado.hasMany(Box)
-Desentarimado.belongsTo(User)
-User.hasMany(Desentarimado)
+Desentarimado.hasMany(Box);
+Desentarimado.belongsTo(User);
+User.hasMany(Desentarimado);
 
 //Relaciones de Precios
-Pricebox.belongsTo(Box)
-Pricebox.belongsTo(User)
-Box.belongsTo(Pricebox)
+Pricebox.belongsTo(Box);
+Pricebox.belongsTo(User);
+Box.belongsTo(Pricebox);
 
 //relacionando fotos de Chofer
-Chofersphotos.belongsTo(Chofer)
-Chofer.belongsTo(Chofersphotos)
+Chofersphotos.belongsTo(Chofer);
+Chofer.belongsTo(Chofersphotos);
 
 //relaciones entre printer, cajas, tarimas, almacenes
 Printer.belongsTo(Box)
