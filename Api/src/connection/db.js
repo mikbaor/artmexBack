@@ -337,6 +337,9 @@ Box.belongsTo(Printer)
 Printer.belongsTo(Tarima)
 Tarima.belongsTo(Printer)
 
+console.log("/************ MODELS **********************");
+console.log(sequelize.models);
+console.log("/************ MODELS **********************");
 
 module.exports = {
   ...sequelize.models,
