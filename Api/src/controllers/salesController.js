@@ -16,7 +16,7 @@ const {
 } = require("../connection/db");
 const { tarimasAcajas } = require("../handlers/desentarimar");
 const { Op } = require("sequelize");
-//const { uploadImageSales } = require("./uploadImagesController");
+const { uploadImageSales } = require("./uploadImagesController");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const fs = require("fs");
 const path = require("path");
@@ -70,7 +70,7 @@ const createSale = async (req, res) => {
       await newPaymentMethod.setSale(newSale, { transaction });
       await newSale.addPaymentmethods(newPaymentMethod, { transaction });
     }
-    /*if (req.files) {
+    if (req.files) {
       for (const file of req.files) {
         pathImage = file.path;
         imageSale = `${req.protocol}://${req.get("host")}/${pathImage.replace(
@@ -78,9 +78,11 @@ const createSale = async (req, res) => {
           "/"
         )}`;
 
-      //  const urlCloud = await uploadImageSales(pathImage);
+        //  const urlCloud = await uploadImageSales(pathImage);
 
-        await fs.unlink(pathImage);
+        fs.unlink(pathImage, (error) => {
+          log.error(error)
+        });
 
         // const imagenesPath = await Salephotos.create(
         //   {
@@ -91,7 +93,7 @@ const createSale = async (req, res) => {
         // await imagenesPath.setSale(newSale, { transaction });
       }
     }
-    */
+
 
     const user = await User.findByPk(userId, { transaction });
     const client = await Client.findByPk(clientId, { transaction });
