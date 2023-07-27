@@ -11,6 +11,7 @@ const {
   Pricebox,
   Boxammount,
   Salephotos,
+  Paymentmethod,
   conn,
 } = require("../connection/db");
 /*const { tarimasAcajas } = require("../handlers/desentarimar");
