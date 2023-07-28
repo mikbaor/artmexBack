@@ -30,12 +30,12 @@ async function ticketDetailSale58mm({ tarimas, saleDetail, boxes, saleId, functi
     let TOTAL_PRICE = 0
     let TOTAL_ITEMS = 0
     tarimas?.forEach(ele => {
-      TOTAL_PRICE += ele.tarima_price
+      TOTAL_PRICE += Number(ele.tarima_price)
       TOTAL_ITEMS++
     });
     boxes?.forEach(ele => {
-      TOTAL_PRICE += ele.dollarCost
-      TOTAL_ITEMS += ele.boxes_count
+      TOTAL_PRICE += Number(ele.box_price)
+      TOTAL_ITEMS += Number(ele.boxes_count)
     });
 
     /* CREACION DEL DOC */
@@ -256,7 +256,7 @@ Cell phone: 630 842 4166`
         { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
       )
       doc.fontSize(FONT_SIZE).text(
-        box.dollarCost.toFixed(2),
+        Number(box.box_price).toFixed(2),
         WIDTH_INICIO + 100,
         y,
         { lineBreak: false, characterSpacing: 0.2, wordSpacing: 0.2 }
